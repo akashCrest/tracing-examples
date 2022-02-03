@@ -11,6 +11,18 @@ import Alamofire
 import ObjectMapper
 
 
+enum ProductErrorType : String {
+    case crash = "crash"
+    case freeze = "freeze"
+    case error4xx = "4xx"
+    case error5xx = "5xx"
+    case exception = "exception"
+}
+
+enum ProductErrorAction : String {
+    case cart = "cart"
+}
+
 class ProductList: Mappable {
     var id : String = ""
     var description: String = ""
@@ -18,6 +30,9 @@ class ProductList: Mappable {
     var name : String = ""
     var priceUsd : productPrice?
     var categories : [String] = []
+    var errorType : String = ""
+    var errorAction : String = ""
+    var availableQty = 1
     
     required init?(map: Map) {
     }
@@ -29,6 +44,9 @@ class ProductList: Mappable {
         id              <- map["id"]
         description     <- map["description"]
         categories      <- map["categories"]
+        errorType       <- map["errorType"]
+        errorAction     <- map["errorAction"]
+        availableQty    <- map["availableQty"]
     }
 }
 

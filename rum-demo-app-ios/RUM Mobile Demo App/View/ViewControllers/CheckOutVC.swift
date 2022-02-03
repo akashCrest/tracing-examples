@@ -7,6 +7,7 @@
 
 import Foundation
 import UIKit
+import SplunkOtel
 
 class CheckOutVC  : UIViewController{
     
@@ -62,6 +63,8 @@ class CheckOutVC  : UIViewController{
         self.addBlueHeader(title: "RUM Mobile Demo", isRightButtonHidden: false, isBackButtonHidden: false)
         btnPlaceOrder.addTextSpacing()
         self.addDefaultInputValues()
+        
+        RumEventHelper.shared.trackCustomRumEventFor(.checkout)
     }
     
     @objc func didChangeText(textField:UITextField) {
@@ -89,9 +92,17 @@ class CheckOutVC  : UIViewController{
         self.view.endEditing(true)
         guard validateInputs() else { return }
         
-        checkoutViewModel.callCheckoutAPI(email: self.txtEmailAddress.text ?? "", streetAddress: self.txtStreetAddress.text ?? "", zipCode: self.txtZipCode.text ?? "", city: self.txtCity.text ?? "", state: self.txtState.text ?? "", country: self.txtCountry.text ?? "", creditCarNumber: self.txtCreditCardNumber.text ?? "", creditCardExpMonth: self.txtMonth.text ?? "", creditCardExpYear: self.txtYear.text ?? "", creditCardCVV: self.txtCVV.text ?? "") {
-            let vc = mainStoryBoard.instantiateViewController(withIdentifier: "CompleteOrderVC")
-            self.navigationController?.pushViewController(vc, animated: true)
+        RumEventHelper.shared.trackCustomRumEventFor(.payment)
+        
+        if self.txtCreditCardNumber.text == "0000-0000-0000-0000" {
+            //Generate payment failure exception
+            RumEventHelper.shared.addError("Payment Failed", attributes: nil)
+            self.showAlertMessage(title: "Payment Failed", message: "The provided credit card number is invalid, resulting in payment failure.", handlers: nil)
+        } else {
+            checkoutViewModel.callCheckoutAPI(email: self.txtEmailAddress.text ?? "", streetAddress: self.txtStreetAddress.text ?? "", zipCode: self.txtZipCode.text ?? "", city: self.txtCity.text ?? "", state: self.txtState.text ?? "", country: self.txtCountry.text ?? "", creditCarNumber: self.txtCreditCardNumber.text ?? "", creditCardExpMonth: self.txtMonth.text ?? "", creditCardExpYear: self.txtYear.text ?? "", creditCardCVV: self.txtCVV.text ?? "") {
+                let vc = mainStoryBoard.instantiateViewController(withIdentifier: "CompleteOrderVC")
+                self.navigationController?.pushViewController(vc, animated: true)
+            }
         }
     }
     

@@ -26,5 +26,9 @@ struct Constants {
 
    
     static let DefaultCurrencyCode = "USD"
+}
 
+struct UserDefaultKeys {
+    
+    static let appBaseURL = "UserDefaults_App_Base_URL"
 }

@@ -10,13 +10,15 @@ import UIKit
 import OpenTelemetryApi
 import OpenTelemetrySdk
 import SplunkOtel
+import SplunkOtelCrashReporting
 
 class URLConfigurationVC : UIViewController {
     
     
     @IBOutlet weak var lblTitle: UILabel!
     @IBOutlet weak var btnSubmit: UIButton!
-    @IBOutlet weak var txtURL: UITextField!
+    @IBOutlet weak var txtURL: DesignableUITextField!
+    @IBOutlet weak var lblErrorMessage: UILabel!
     
     @IBOutlet weak var imgGlobe: UIImageView!
     override func viewDidLoad() {
@@ -28,16 +30,31 @@ class URLConfigurationVC : UIViewController {
         super.viewWillAppear(animated)
         
         btnSubmit.addTextSpacing()
-        lblTitle.textColor = config.commonScreenBgColor
-        let image = UIImage(named: "worldwide")?.withRenderingMode(.alwaysTemplate)
-        imgGlobe.tintColor = .lightGray
-        imgGlobe.image = image
+        //        lblTitle.textColor = config.commonScreenBgColor
+        //        let image = UIImage(named: "worldwide")?.withRenderingMode(.alwaysTemplate)
+        //        imgGlobe.tintColor = .lightGray
+        //        imgGlobe.image = image
         
-        setSubmitButtonStatus()
+//        setSubmitButtonStatus()
+        
+        UserDefaults.standard.removeObject(forKey: UserDefaultKeys.appBaseURL)
+        UserDefaults.standard.synchronize()
+        
+//        self.btnSubmit.isUserInteractionEnabled = false
+//        self.btnSubmit.backgroundColor = config.disableButtonBgColor
+        self.lblErrorMessage.isHidden = true
+        
+        self.txtURL.text = "http://pmrum.o11ystore.com/"
+    }
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        
+        RumEventHelper.shared.trackCustomRumEventFor(.loggedInAndReady)
     }
     
     func setSubmitButtonStatus(){
-        if txtURL.text == "https://"{
+        if txtURL.text?.isEmpty ?? true {
             btnSubmit.isUserInteractionEnabled = false
             btnSubmit.backgroundColor = config.disableButtonBgColor
         }
@@ -45,22 +62,37 @@ class URLConfigurationVC : UIViewController {
             btnSubmit.isUserInteractionEnabled = true
             btnSubmit.backgroundColor =  config.commonScreenBgColor
         }
-            
+        
     }
-   
+    
     @IBAction func btnSubmitClicked(_ sender: Any) {
         
-        if txtURL.text?.count == 0 {
-            self.presentErrorAlert(title:StringConstants.alertTitle , message: StringConstants.noURLMsg)
+        var urlToCheck = self.txtURL.text
+        
+        if urlToCheck?.last == "/" {
+            urlToCheck?.removeLast()
         }
-        else if txtURL.text?.isValidUrl() == false {
-            self.presentErrorAlert(title:StringConstants.alertTitle , message: StringConstants.urlIsNotProperMsg)
+        
+        if urlToCheck?.count == 0 {
+            //            self.presentErrorAlert(title:StringConstants.alertTitle , message: StringConstants.noURLMsg)
+            self.txtURL.layer.borderColor = UIColor.red.cgColor
+            self.lblErrorMessage.isHidden = false
+            self.lblErrorMessage.text = StringConstants.noURLMsg
+        }
+        else if urlToCheck?.isValidUrl() == false {
+            self.txtURL.layer.borderColor = UIColor.red.cgColor
+            self.lblErrorMessage.isHidden = false
+            self.lblErrorMessage.text = StringConstants.urlIsNotProperMsg
+            //            self.presentErrorAlert(title:StringConstants.alertTitle , message: StringConstants.urlIsNotProperMsg)
         }
         else{
+            self.lblErrorMessage.isHidden = true
+            urlToCheck = urlToCheck?.appending("/")
             //valid URL
             let mainTabBarController = mainStoryBoard.instantiateViewController(withIdentifier: "MainTabBarController")
-                (UIApplication.shared.delegate as? AppDelegate)?.changeRootViewController(mainTabBarController)
-          
+            Configuration().rootAPIUrl = urlToCheck ?? ""
+            (UIApplication.shared.delegate as? AppDelegate)?.changeRootViewController(mainTabBarController)
+            
         }
     }
 }
@@ -70,12 +102,24 @@ extension URLConfigurationVC : UITextFieldDelegate{
         textField.resignFirstResponder()
         return true
     }
-   
+    
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-        setSubmitButtonStatus()
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            self.setSubmitButtonStatus()
+        }
+        
+        if let text = textField.text,
+           let textRange = Range(range, in: text) {
+            let updatedText = text.replacingCharacters(in: textRange,
+                                                       with: string)
+            if !self.lblErrorMessage.isHidden && updatedText.isValidUrl() {
+                self.txtURL.layer.borderColor = UIColor.black.cgColor
+                self.lblErrorMessage.isHidden = true
+            }
+            
+        }
+        
         return true
     }
-   
-   
-    
 }

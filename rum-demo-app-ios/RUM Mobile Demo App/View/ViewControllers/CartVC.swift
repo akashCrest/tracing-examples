@@ -43,9 +43,15 @@ class CartVC  : UIViewController{
         viewPriceInfo.addShadow()
         btnCheckOut.addTextSpacing()
         setTopConstraint()
-        cartViewModel.callCartAPI {
+        cartViewModel.callCartAPI { errorMessage in
+            if let error = errorMessage {
+                self.showAlertMessage(title: "Error", message: error, handlers: nil)
+                return
+            }
             self.showCartInformation()
         }
+        
+        RumEventHelper.shared.trackCustomRumEventFor(.cart)
     }
     func setTopConstraint(){
         if UIDevice.current.hasNotch {
@@ -84,8 +90,13 @@ class CartVC  : UIViewController{
     }
     
     @IBAction func btnEmptyCartClicked(_ sender: Any) {
-        cartViewModel.emptyCart()
-        gotoHomeTab(andRemoveBadge: true, andShowProductDetail: false, withProduct: nil)
+        
+        StaticEventsVM().slowApiResponse() {
+            StaticEventsVM().slowApiResponse()
+            
+            self.cartViewModel.emptyCart()
+            self.gotoHomeTab(andRemoveBadge: true, andShowProductDetail: false, withProduct: nil)
+        }
     }
     
     /**

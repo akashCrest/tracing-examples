@@ -24,6 +24,8 @@ var placemarkDescription = CLPlacemark()
 let geoCoder = CLGeocoder()
 let sharedCart = Cart.sharedInstance  //shared instance of cart class
 
+var timerForLocation : Timer?
+
 @main
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
@@ -48,17 +50,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 locationObj.startUpdatingLocation()
             }
         }
+        
+        //Initialise the timer to get the latest location coordinates on every 5 seconds
+        timerForLocation = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true, block: { timerObj in
+            self.startGettingLatestLocation()
+        })
                 
     
-        if #available(iOS 13, *) {
-            //rum library integration GET crash in ios 11 and 12 work well in ios 13 ,15
+//        if #available(iOS 13, *) {
+//            rum library integration GET crash in ios 11 and 12 work well in ios 13 ,15
             SplunkRum.initialize(beaconUrl: config.beaconURL , rumAuth: config.rumAuth ,options: SplunkRumOptions(debug: true, environment: config.rumEnvironmentName))
-            
+
             SplunkRumCrashReporting.start()
             SplunkRum.setGlobalAttributes(["DeviceID": UIDevice.current.identifierForVendor?.uuidString as Any])
             //https://ingest.us1.signalfx.com  -- realm URL
             //https://rum-ingest.us0.signalfx.com/v1/rum  -- default
-        }
+//        }
         
        
         
@@ -70,7 +77,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             // using the storyboard identifier we set earlier
                 let mainTabBarController = mainStoryBoard.instantiateViewController(withIdentifier: "MainTabBarController")
                 window?.rootViewController = mainTabBarController
-           
             
         } else {
             // if user isn't logged in
@@ -85,7 +91,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
    
-
+    //MARK:  - Get the location in every 10 seconds
+    /**
+     To update the latest location coordinates on the Golobal Attributes, this method invokes the location method on every 5 seconds.
+     */
+    func startGettingLatestLocation() {
+        DispatchQueue.main.async {
+            if #available(iOS 14.0, *) {
+                if self.locationObj.authorizationStatus == CLAuthorizationStatus.authorizedWhenInUse {
+                    self.locationObj.startUpdatingLocation()
+                }
+            } else {
+                // Fallback on earlier versions
+                if CLLocationManager.authorizationStatus() == CLAuthorizationStatus.authorizedWhenInUse {
+                    self.locationObj.startUpdatingLocation()
+                }
+            }
+        }
+    }
+    
 
     // MARK: - change root vc
     /**
@@ -134,7 +158,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 }
 extension AppDelegate : CLLocationManagerDelegate{
     func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
-       
+        print("LOGGED =>> LOCATION METHOD")
         _ = CLLocation(latitude: (manager.location?.coordinate.latitude) ?? 0 , longitude: (manager.location?.coordinate.longitude) ?? 0)
         
         guard let  coord = manager.location?.coordinate else {
@@ -142,8 +166,9 @@ extension AppDelegate : CLLocationManagerDelegate{
             return
         }
         coordinate = coord
-       
-        SplunkRum.setGlobalAttributes(["_sf_geo_lat":coordinate.latitude,"_sf_geo_long":coordinate.longitude])
+        SplunkRum.setGlobalAttributes(["_sf_geo_lat":coordinate.latitude as Any,"_sf_geo_long":coordinate.longitude as Any])
+        locationObj.stopUpdatingLocation()
+        print("LOGGED =>> LOCATION: \(coordinate.latitude) & \(coordinate.longitude)")
     }
     
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
@@ -163,7 +188,7 @@ extension AppDelegate : CLLocationManagerDelegate{
         else if status == .denied{
             //ask user to go to setting and enable location permission
             
-            let actionCancel = PCLBlurEffectAlertAction(title: "Cancel".localized(), style: .default) {_ in }
+            /*let actionCancel = PCLBlurEffectAlertAction(title: "Cancel".localized(), style: .default) {_ in }
             let actionSettings = PCLBlurEffectAlertAction(title: "Settings".localized(), style: .default) {_ in
                 guard let settingsUrl = URL(string: UIApplication.openSettingsURLString) else {
                     return
@@ -173,7 +198,7 @@ extension AppDelegate : CLLocationManagerDelegate{
                  }
             }
            
-            window?.rootViewController?.showAlertMessage(title: StringConstants.alertTitle, message: StringConstants.gotoSettingMsg, handlers: [actionCancel,actionSettings])
+            window?.rootViewController?.showAlertMessage(title: StringConstants.alertTitle, message: StringConstants.gotoSettingMsg, handlers: [actionCancel,actionSettings])*/
              
         }
     }

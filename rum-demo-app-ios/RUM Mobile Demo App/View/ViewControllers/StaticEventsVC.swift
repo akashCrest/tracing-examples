@@ -45,8 +45,7 @@ class StaticEventsVC : UIViewController{
     
     // MARK: - button action
      @IBAction func btnCrashAppClicked(_ sender: Any) {
-        let null = UnsafePointer<UInt8>(bitPattern: 0)
-        _ = null!.pointee
+         viewModel.crashApp()
     }
     @IBAction func btnGeneralANRClicked(_ sender: Any) {
         NSException(name: NSExceptionName(rawValue: "IllegalFormatError"), reason: "Could not parse input", userInfo: nil).raise()

@@ -9,7 +9,6 @@ import UIKit
 import Foundation
 import ObjectMapper
 import Alamofire
-import AlamofireObjectMapper
 import SplunkOtel
 import OpenTelemetrySdk
 import OpenTelemetryApi
@@ -27,24 +26,22 @@ class DataService{
                                             params: Parameters?,
                                             type: T.Type,
                                             completion: @escaping (T?, String?,Int) -> Void){
-    
-
-        APProgressHUD.shared.showProgressHUD(nil)
-        let tracer = OpenTelemetrySDK.instance.tracerProvider.get(instrumentationName:config.RUM_TRACER_NAME )
-        let span = tracer.spanBuilder(spanName: "API call").startSpan()
-        span.setAttribute(key: "API URL", value: urlString)
         
-      
-        Alamofire.request(urlString, method: method, parameters: params).responseObject { (response: DataResponse<T>) in
-           
+        
+        APProgressHUD.shared.showProgressHUD(nil)
+        _ = AF.request(urlString, method: method, parameters: params, encoding: JSONEncoding.default, headers: nil, interceptor: nil, requestModifier: nil).response { (response : AFDataResponse<Data?>) in
+            
             APProgressHUD.shared.dismissProgressHUD()
-            completion(nil, nil , 200)
-        }
-    
-       
+            if response.response?.statusCode ?? 0 != 200 {
+                let errorMessage = String.init(format: StringConstants.unableToResolveHost, urlString)
+                completion(nil, errorMessage , 0)
+            } else {
+                completion(nil, nil , 200)
+            }
+            }
     }
-   
-   
+    
+    
 }
 
 enum ApiName: String{
@@ -59,5 +56,5 @@ func getURL(for apiname: String)-> String{
     //return "\(config.rootAPIUrl)/\(apiname)"
     return "\(config.rootAPIUrl)\(apiname)"
 }
-    
-    
+
+

@@ -36,6 +36,8 @@ class ProductListVC : UIViewController {
         super.viewWillAppear(animated)
         self.addBlueHeader(title: "RUM Mobile Demo", isRightButtonHidden: false, isBackButtonHidden: true)
         self.collectionview.layoutIfNeeded()
+        
+        RumEventHelper.shared.trackCustomRumEventFor(.productListLoaded)
     }
     
     // MARK: - Networking
@@ -44,6 +46,10 @@ class ProductListVC : UIViewController {
     */
     private func attemptFetchProductList() {
         viewModel.fetchProducts { errorMessage, products in
+            if let error = errorMessage {
+                self.showAlertMessage(title: "Error", message: error, handlers: nil)
+                return
+            }
             self.products = products
         }
         
@@ -129,8 +135,10 @@ extension ProductListVC: UICollectionViewDelegate {
 
         default:
             assert(false, "Unexpected element kind")
+            return UICollectionReusableView()
         }
     }
+    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
         var multiplier = 35.0
         if UIDevice.current.userInterfaceIdiom == .pad {

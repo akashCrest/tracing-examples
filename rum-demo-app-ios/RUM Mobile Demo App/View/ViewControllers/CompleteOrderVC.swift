@@ -30,6 +30,8 @@ class CompleteOrderVC  : UIViewController{
                            "value":"USD 111.00"]]
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        RumEventHelper.shared.trackCustomRumEventFor(.paymentSuccessful)
     }
     
     override func viewWillAppear(_ animated: Bool) {

@@ -25,7 +25,20 @@ class Configuration : NSObject{
     let RUM_TRACER_NAME = "SplunkRum"
     
     // MARK: - root URL
-    let rootAPIUrl = "ENTER_YOUR_ROOT_API_URL"
+    var rootAPIUrl : String {
+        get {
+            
+            if let baseURL = UserDefaults.standard.value(forKey: UserDefaultKeys.appBaseURL) as? String, !baseURL.isEmpty {
+                return baseURL
+            }
+            return "ENTER_YOUR_ROOT_API_URL"
+        }
+        
+        set {
+            UserDefaults.standard.set(newValue, forKey: UserDefaultKeys.appBaseURL)
+            UserDefaults.standard.synchronize()
+        }
+    }
     
     // MARK: - Font Scheme
     let fontNameLight = "Roboto-Light"

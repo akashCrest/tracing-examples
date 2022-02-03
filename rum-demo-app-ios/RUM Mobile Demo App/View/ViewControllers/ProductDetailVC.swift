@@ -28,6 +28,8 @@ class ProductDetailVC: UIViewController{
         super.viewDidLoad()
         self.collectionview.register(UINib(nibName: "ProductListCell", bundle: nil), forCellWithReuseIdentifier: "ProductListCell")
         self.collectionview.contentInset = UIEdgeInsets.init(top: 0, left: 0, bottom: 20, right: 0)
+        
+        RumEventHelper.shared.trackCustomRumEventFor(.productViewed, attributes: ["product.name" : self.product?.name ?? ""])
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -37,14 +39,48 @@ class ProductDetailVC: UIViewController{
         self.detailViewModel.fetchProductDetails(productID: self.product?.id ?? "0") {
             self.viewModel.fetchProducts { errorMessage, products in
                 self.likeProducts = products
+                
+                self.handleEventStories()
             }
         }
     }
-        
+    
+    //MARK: - Event Stories
+    
+    func handleEventStories() {
+        //Check if there is error type is defined for the selected product
+        if !(self.product?.errorType.isEmpty ?? true) {
+            
+            if self.product?.errorType.lowercased() == ProductErrorType.freeze.rawValue {
+                //Freeze the app
+                StaticEventsVM().freezeApp()
+            } else if self.product?.errorType.lowercased() == ProductErrorType.error4xx.rawValue {
+                //Generate 4xx error request
+                StaticEventsVM().staticEvent(withcode: 400)
+            } else if self.product?.errorType.lowercased() == ProductErrorType.error5xx.rawValue {
+                //Generate 4xx error request
+                StaticEventsVM().staticEvent(withcode: 500)
+            } else if self.product?.errorType.lowercased() == ProductErrorType.error4xx.rawValue {
+                //Generate 4xx error request
+                StaticEventsVM().staticEvent(withcode: 400)
+            }
+        }
+    }
+    
+    //MARK: -
     /**
      *description: Action when user click on the "Add to Cart" button on product details screen
     */
     @objc func btnAddToCartClicked() {
+        
+        //Check if there is error action "cart" is defined for the selected product
+        if self.product?.errorAction.lowercased() == ProductErrorAction.cart.rawValue {
+            
+            if self.product?.errorType.lowercased() == ProductErrorType.crash.rawValue {
+                //Crash the app
+                StaticEventsVM().crashApp()
+            }
+        }
         
         //add current product(items with quantity) in to cart shared instance
         let selectedProduct = pickedProduct(product: self.product!, quantity: self.productQuantity)
@@ -132,7 +168,18 @@ extension ProductDetailVC: UICollectionViewDelegate {
             headerView.lblProductDescription.text = self.product?.description
             headerView.txtQty.text = "\(self.productQuantity)"
             headerView.qtyUpdatedCallBack = { (qty) -> Void in
-                self.productQuantity = Int(qty) ?? 1
+                
+                if self.product?.errorType.lowercased() == ProductErrorType.exception.rawValue {
+                    if (Int(qty) ?? 1) > self.product?.availableQty ?? 1 {
+                        let errorMessage = "Maximum available stock size is 1 and the quantity added by the user is > 1 , an exception will be generated and the user will not be able to add it to the cart."
+                        headerView.txtQty.endEditing(true)
+                        handleException(errorstring: errorMessage)
+                        self.showAlertMessage(title: "Error", message: errorMessage, handlers: nil)
+                        headerView.txtQty.text = self.productQuantity.description
+                    } else {
+                        self.productQuantity = Int(qty) ?? 1
+                    }
+                }
             }
             return headerView
 
