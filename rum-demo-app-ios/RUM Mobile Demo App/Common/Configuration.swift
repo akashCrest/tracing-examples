@@ -88,13 +88,13 @@ class Configuration : NSObject{
     let confirmationAmountLightColor = UIColor.rgb(red:179, green: 193, blue:199, alpha: 1)
     let confirmationWithDrawAmountLightColor = UIColor.rgb(red:163, green: 178, blue:253, alpha: 1)
     
-       
+    
     // Alternate Colours
     let alternateGrayDark = UIColor.rgb(red: 110, green: 110, blue: 109, alpha: 1)
     let alternateGrayMid = UIColor.rgb(red: 164, green: 163, blue: 163, alpha: 1)
     let warningRed = UIColor.rgb(red: 181, green: 66, blue: 66, alpha: 1)
     
-   
+    
     // MARK: - button colors
     let buttonBackGroundColor = UIColor.rgb(red: 0, green: 128, blue: 144, alpha: 1)
     let buttonTextColor = UIColor.rgb(red: 255, green: 255, blue: 255, alpha: 1)
@@ -102,18 +102,18 @@ class Configuration : NSObject{
     // MARK: - UILabel color
     let labelPrimaryColor = UIColor.rgb(red: 0, green: 0, blue: 0, alpha: 1)  //black
     let labelSecondaryColor  = UIColor.rgb(red: 192, green: 192, blue: 192, alpha: 1)  //light gray
-  
+    
     
     //MARK: - TEXT color
     let textPrimaryColor = UIColor.rgb(red: 0, green: 0, blue: 0, alpha: 1)  //black
     let textPlaceholderColor  = UIColor.rgb(red: 192, green: 192, blue: 192, alpha: 1)  //light gray
     
-    // MARK:- Navigation bar 
+    // MARK:- Navigation bar
     let settingsIcon = UIImage(named: "menu ")?.withRenderingMode(.alwaysTemplate)
     let backIcon = UIImage(named: "chevron-left")?.withRenderingMode(.alwaysTemplate)
     
     let navigationTitlelogo = UIImage(named: "Hipster_NavLogo")?.withRenderingMode(.alwaysOriginal)  //"Hipster_NavLogo"   //"nav_logo2"
-
+    
     
     
 }

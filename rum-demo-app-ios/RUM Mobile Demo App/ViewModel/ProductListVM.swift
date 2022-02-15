@@ -29,7 +29,7 @@ class ProductListVM {
      *description: API call for the product list API..
     */
     func fetchProducts(completion: @escaping (_ errorMessage : String?, _ products : [ProductList])->Void) {
-       DataService.request( getURL(for: ApiName.ProductList.rawValue) , method: .get, params: nil, type: ProductList.self) { (productlist, errorMessage, responsecode) in
+       DataService.request( getURL(for: ApiName.ProductList.rawValue) , method: "GET", params: nil, type: ProductList.self) { (productlist, errorMessage, responsecode) in
                 self.products = productlist
                 
            if let error = errorMessage {

@@ -58,9 +58,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 
     
 //        if #available(iOS 13, *) {
-//            rum library integration GET crash in ios 11 and 12 work well in ios 13 ,15
+            //rum library integration GET crash in ios 11 and 12 work well in ios 13 ,15
             SplunkRum.initialize(beaconUrl: config.beaconURL , rumAuth: config.rumAuth ,options: SplunkRumOptions(debug: true, environment: config.rumEnvironmentName))
-
+            
             SplunkRumCrashReporting.start()
             SplunkRum.setGlobalAttributes(["DeviceID": UIDevice.current.identifierForVendor?.uuidString as Any])
             //https://ingest.us1.signalfx.com  -- realm URL
@@ -91,7 +91,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
    
-    //MARK:  - Get the location in every 10 seconds
+    //MARK:  - Get the location in every 5 seconds
     /**
      To update the latest location coordinates on the Golobal Attributes, this method invokes the location method on every 5 seconds.
      */
@@ -117,42 +117,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
      *Parameter vc: The view controller which needs to be set as root controller of the window
      *Parameter animated: Whether the window root controller needs to be set with animation or not.
     */
-    func changeRootViewController(_ vc: UIViewController, animated: Bool = true) {
-        guard let window = self.window else {
-            return
-        }
-        if  vc is UITabBarController {
-            let tabContoller = vc as? UITabBarController
-            let itemCount = sharedCart.getItemsCountToShowAsBadge()
-            tabContoller?.tabBar.addBadge(atIndex: 1, badge: itemCount)
-        }
+    func changeRootViewController(_ vc: UIViewController, animated: Bool = true)  {
         
-        
-        // A mask of options indicating how you want to perform the animations.
-        let options: UIView.AnimationOptions = .curveLinear
-
-        // The duration of the transition animation, measured in seconds.
-        let duration: TimeInterval = 0.3
-
-        // Creates a transition animation.
-        // Though `animations` is optional, the documentation tells us that it must not be nil. ¯\_(ツ)_/¯
-        UIView.transition(with: window, duration: duration, options: options, animations: {
+        DispatchQueue.main.async {
+            guard let window = self.window else {
+                return
+            }
+            if  vc is UITabBarController {
+                let tabContoller = vc as? UITabBarController
+                let itemCount = sharedCart.getItemsCountToShowAsBadge()
+                tabContoller?.tabBar.addBadge(atIndex: 1, badge: itemCount)
+            }
             
-           UIView.animate(withDuration: 0.3, animations: { () -> Void in
-                window.transform = CGAffineTransform.identity.translatedBy(x: -screenWidth, y: 0)
-            }, completion: { (Finished) -> Void in
-                
-            })
-        }, completion:
-        { completed in
-            // maybe do something on completion here
-            // change the root view controller to your specific view controller
-            window.transform = CGAffineTransform.identity
-            window.rootViewController = vc
-        })
-        
+            
+            // A mask of options indicating how you want to perform the animations.
+            let options: UIView.AnimationOptions = .curveLinear
 
-        
+            // The duration of the transition animation, measured in seconds.
+            let duration: TimeInterval = 0.3
+
+            // Creates a transition animation.
+            // Though `animations` is optional, the documentation tells us that it must not be nil. ¯\_(ツ)_/¯
+            UIView.transition(with: window, duration: duration, options: options, animations: {
+                
+               UIView.animate(withDuration: 0.3, animations: { () -> Void in
+                    window.transform = CGAffineTransform.identity.translatedBy(x: -screenWidth, y: 0)
+                }, completion: { (Finished) -> Void in
+                    
+                })
+            }, completion:
+            { completed in
+                // maybe do something on completion here
+                // change the root view controller to your specific view controller
+                window.transform = CGAffineTransform.identity
+                window.rootViewController = vc
+            })
+        }
     }
 
 }
@@ -166,8 +166,14 @@ extension AppDelegate : CLLocationManagerDelegate{
             return
         }
         coordinate = coord
+        
+        //FRANCE: 46.2276, 2.2137
+        //Uncomment below line of of code and comment the line after it to statically add the location in France
+        //SplunkRum.setGlobalAttributes(["_sf_geo_lat":46.2276,"_sf_geo_long":2.2137])
         SplunkRum.setGlobalAttributes(["_sf_geo_lat":coordinate.latitude as Any,"_sf_geo_long":coordinate.longitude as Any])
+        
         locationObj.stopUpdatingLocation()
+        RumEventHelper.shared.handleLocationBasedAPICall()
         print("LOGGED =>> LOCATION: \(coordinate.latitude) & \(coordinate.longitude)")
     }
     
@@ -176,7 +182,7 @@ extension AppDelegate : CLLocationManagerDelegate{
            if let error = error as? CLError, error.code == .denied {
               // Location updates are not authorized.
              // To prevent forever looping of `didFailWithError` callback
-               locationObj.stopMonitoringSignificantLocationChanges()
+               //locationObj.stopMonitoringSignificantLocationChanges()
               return
            }
     }

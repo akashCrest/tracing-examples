@@ -33,31 +33,53 @@ class StaticEventsVM {
      *Parameter withcode: The error code of expected from the API response code.
     */
     func staticEvent(withcode : Int, completion: (()->Void)? = nil) {
-        var URL = ""
         if withcode == 400{
-            URL = "\(Configuration().rootAPIUrl)/cart/checkouts"
+            self.generate4xxEndpoitError(completion: completion)
         }
         else{
-            URL = "https://mock.codes/500"
+            self.generate5xxEndpointError(completion: completion)
         }
+    }
+    
+    fileprivate func generate5xxEndpointError(completion: (()->Void)? = nil) {
         
-        DataService.request( URL , method: .get, params:[:], type: StaticEvents.self) { (staticevent, error , responsecode) in
+        let URL = "\(Configuration().rootAPIUrl)cart/checkout"
+        let parameters : [String : Any] = ["email" : "someone@example.com",
+                                       "street_address" : "1600 Amphitheatre Parkway",
+                                       "zip_code" : "94043",
+                                       "city": "Mountain View",
+                                       "state": "CA",
+                                       "country" : "United States",
+                                       "credit_card_number": "4432-8015-6152-0454",
+                                       "credit_card_expiration_month" : "1",
+                                       "credit_card_expiration_year" : "2022",
+                                       "credit_card_cvv" : "672"]
+        DataService.request( URL , method: "POST", params:parameters, type: StaticEvents.self) { (staticevent, error , responsecode) in
                 self.responsecode = responsecode
                 self.staticevent = staticevent
                 self.error = error as? Error
                 completion?()
         }
-        
-       
     }
+    
+    fileprivate func generate4xxEndpoitError(completion: (()->Void)? = nil) {
+        
+        let URL = "\(Configuration().rootAPIUrl)cart/checkouts"
+        DataService.request( URL , method: "GET", params:[:], type: StaticEvents.self) { (staticevent, error , responsecode) in
+                self.responsecode = responsecode
+                self.staticevent = staticevent
+                self.error = error as? Error
+                completion?()
+        }
+    }
+    
     // MARK: - Slow Api response
     /**
      *description: API call for cart.
     */
-    func slowApiResponse(completion: (()->Void)? = nil){
+    func slowApiResponse(_ delayTime: Int = 5, completion: (()->Void)? = nil){
         //Change value(seconds) for slow response
-        let delay = 5
-        DataService.request( "https://run.mocky.io/v3/a8d9f55d-f6dc-4f3a-9ac4-3b7b787555cc?mocky-delay=\(delay)s" , method: .get, params:[:], type: StaticEvents.self) { (staticevent, error , responsecode) in
+        DataService.request( "https://run.mocky.io/v3/a8d9f55d-f6dc-4f3a-9ac4-3b7b787555cc?mocky-delay=\(delayTime)s" , method: "GET", params:[:], type: StaticEvents.self) { (staticevent, error , responsecode) in
                 completion?()
                 self.responsecode = responsecode
                 self.staticevent = staticevent
@@ -80,13 +102,15 @@ class StaticEventsVM {
      Freeze the user intercation of  the app for specified seconds. This will add one transparent view on the root window and will block the user actions on the screen below it.
      */
     func freezeApp() {
-        if let appDel = UIApplication.shared.delegate as? AppDelegate {
-            let blockerView = UIView.init(frame: appDel.window?.frame ?? .zero)
-            appDel.window?.addSubview(blockerView)
-            
-            //Freeze time is 5.0 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                blockerView.removeFromSuperview()
+        DispatchQueue.main.async {
+            if let appDel = UIApplication.shared.delegate as? AppDelegate {
+                let blockerView = UIView.init(frame: appDel.window?.frame ?? .zero)
+                appDel.window?.addSubview(blockerView)
+                
+                //Freeze time is 5.0 seconds
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    blockerView.removeFromSuperview()
+                }
             }
         }
     }

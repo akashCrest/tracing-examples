@@ -46,19 +46,19 @@ extension PCLBlurEffectAlert {
         fileprivate var containerViewBottomLayoutConstraint: NSLayoutConstraint!
         // AlertView
         let alertView = UIView()
-        fileprivate var alertViewWidthConstraint: NSLayoutConstraint!
-        fileprivate var alertViewHeightConstraint: NSLayoutConstraint!
+        fileprivate var alertViewWidthConstraint: NSLayoutConstraint?
+        fileprivate var alertViewHeightConstraint: NSLayoutConstraint?
         // CornerView
         let cornerView = UIView()
         fileprivate var cornerViewHeightConstraint: NSLayoutConstraint!
         // textAreaView
         fileprivate let textAreaView = UIView()
         fileprivate var textAreaHeight: CGFloat = 0
-        fileprivate var textAreaViewHeightConstraint: NSLayoutConstraint!
+        fileprivate var textAreaViewHeightConstraint: NSLayoutConstraint?
         fileprivate var textAreaVisualEffectView: UIVisualEffectView!
-        fileprivate var textAreaVisualEffectViewHeightConstraint: NSLayoutConstraint!
+        fileprivate var textAreaVisualEffectViewHeightConstraint: NSLayoutConstraint?
         fileprivate let textAreaBackgroundView = UIView()
-        fileprivate var textAreaBackgroundViewHeightConstraint: NSLayoutConstraint!
+        fileprivate var textAreaBackgroundViewHeightConstraint: NSLayoutConstraint?
         // titleLabel
         fileprivate let titleLabel = UILabel()
         // messageLabel
@@ -143,7 +143,9 @@ extension PCLBlurEffectAlert {
             cornerRadius = 4
             buttonTextColor[.default] = tintColor
             buttonTextColor[.cancel] = tintColor
-            configureConstraints()
+            DispatchQueue.main.async {
+                self.configureConstraints()
+            }
         }
         deinit {
             PCLBlurEffectAlert.NotificationManager.shared.removeAlertActionEnabledDidChangeNotificationObserver(self)
@@ -333,10 +335,13 @@ extension PCLBlurEffectAlertController {
 // MARK: - Private
 private extension PCLBlurEffectAlertController {
     func configureConstraints() {
-        configureContainerViewConstraints()
-        configureAlertViewConstraints()
-        configureCornerViewConstraints()
-        configureTextAreaViewConstraints()
+        
+        DispatchQueue.main.async {
+            self.configureContainerViewConstraints()
+            self.configureAlertViewConstraints()
+            self.configureCornerViewConstraints()
+            self.configureTextAreaViewConstraints()
+        }
     }
     func configureContainerViewConstraints() {
         containerView.translatesAutoresizingMaskIntoConstraints = false
@@ -368,10 +373,12 @@ private extension PCLBlurEffectAlertController {
                                                                  attribute: .bottom,
                                                                  multiplier: 1,
                                                                  constant: 0)
-        view.addConstraints([topConstraint,
-                             rightConstraint,
-                             leftConstraint,
-                             containerViewBottomLayoutConstraint])
+        DispatchQueue.main.async {
+            self.view.addConstraints([topConstraint,
+                                 rightConstraint,
+                                 leftConstraint,
+                                      self.containerViewBottomLayoutConstraint])
+        }
     }
     func configureAlertViewConstraints() {
         alertView.translatesAutoresizingMaskIntoConstraints = false
@@ -405,19 +412,29 @@ private extension PCLBlurEffectAlertController {
                                                            attribute: .height,
                                                            multiplier: 1,
                                                            constant: 0)
-            containerView.addConstraints([centerXConstraint,
-                                          bottomConstraint,
-                                          alertViewWidthConstraint,
-                                          alertViewHeightConstraint])
+            
+            DispatchQueue.main.async {
+                if let widthConstraint = self.alertViewWidthConstraint, let heightConstraint = self.alertViewHeightConstraint {
+                    self.containerView.addConstraints([centerXConstraint,
+                                                  bottomConstraint,
+                                                  widthConstraint,
+                                                  heightConstraint])
+                }
+            }
         default:
             let centerXConstraint = NSLayoutConstraint(item: alertView, attribute: .centerX, relatedBy: .equal, toItem: containerView, attribute: .centerX, multiplier: 1, constant: 0)
             let centerYConstraint = NSLayoutConstraint(item: alertView, attribute: .centerY, relatedBy: .equal, toItem: containerView, attribute: .centerY, multiplier: 1, constant: 0)
             alertViewWidthConstraint = NSLayoutConstraint(item: alertView, attribute: .width, relatedBy: .equal, toItem: nil, attribute: .width, multiplier: 1, constant: alertViewWidth)
             alertViewHeightConstraint = NSLayoutConstraint(item: alertView, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .height, multiplier: 1, constant: 0)
-            containerView.addConstraints([centerXConstraint,
-                                          centerYConstraint,
-                                          alertViewWidthConstraint,
-                                          alertViewHeightConstraint])
+            
+            if let widthConstraint = self.alertViewWidthConstraint, let heightConstraint = self.alertViewHeightConstraint {
+                DispatchQueue.main.async {
+                    self.containerView.addConstraints([centerXConstraint,
+                                                  centerYConstraint,
+                                                       widthConstraint,
+                                                       heightConstraint])
+                }
+            }
         }
     }
     func configureCornerViewConstraints() {
@@ -452,7 +469,10 @@ private extension PCLBlurEffectAlertController {
                                                             attribute: .height,
                                                             multiplier: 1,
                                                             constant: 0)
-            alertView.addConstraints([topConstraint, rightConstraint, leftConstraint, cornerViewHeightConstraint])
+            DispatchQueue.main.async {
+                guard let cornerViewHeightConstraint = self.cornerViewHeightConstraint else {return}
+                self.alertView.addConstraints([topConstraint, rightConstraint, leftConstraint, cornerViewHeightConstraint])
+            }
         default:
             let topConstraint = NSLayoutConstraint(item: cornerView,
                                                    attribute: .top,
@@ -482,10 +502,12 @@ private extension PCLBlurEffectAlertController {
                                                             attribute: .bottom,
                                                             multiplier: 1,
                                                             constant: 0)
-            alertView.addConstraints([topConstraint,
-                                      rightConstraint,
-                                      leftConstraint,
-                                      bottomLayoutConstraint])
+            DispatchQueue.main.async {
+                self.alertView.addConstraints([topConstraint,
+                                          rightConstraint,
+                                          leftConstraint,
+                                          bottomLayoutConstraint])
+            }
         }
     }
     func configureTextAreaViewConstraints() {
@@ -521,10 +543,14 @@ private extension PCLBlurEffectAlertController {
                                                           attribute: .height,
                                                           multiplier: 1,
                                                           constant: 0)
-        cornerView.addConstraints([textAreaViewTopConstraint,
-                                   textAreaViewRightConstraint,
-                                   textAreaViewLeftConstraint,
-                                   textAreaViewHeightConstraint])
+        DispatchQueue.main.async {
+            if let textAreaWidth = self.textAreaViewHeightConstraint {
+                self.cornerView.addConstraints([textAreaViewTopConstraint,
+                                           textAreaViewRightConstraint,
+                                           textAreaViewLeftConstraint,
+                                                textAreaWidth])
+            }
+        }
         
         if let visualView = self.textAreaVisualEffectView
         {
@@ -556,10 +582,15 @@ private extension PCLBlurEffectAlertController {
                                                                           attribute: .height,
                                                                           multiplier: 1,
                                                                           constant: 0)
-            cornerView.addConstraints([textAreaVisualEffectViewTopConstraint,
-                                       textAreaVisualEffectViewRightConstraint,
-                                       textAreaVisualEffectViewLeftConstraint,
-                                       textAreaVisualEffectViewHeightConstraint])
+            DispatchQueue.main.async {
+                if let textAreaVisualEffectViewHeightConstraint = self.textAreaVisualEffectViewHeightConstraint {
+                    self.cornerView.addConstraints([textAreaVisualEffectViewTopConstraint,
+                                               textAreaVisualEffectViewRightConstraint,
+                                               textAreaVisualEffectViewLeftConstraint,
+                                               textAreaVisualEffectViewHeightConstraint])
+                }
+                    
+            }
         }
         
         let textAreaBackgroundViewTopConstraint = NSLayoutConstraint(item: textAreaBackgroundView,
@@ -590,58 +621,61 @@ private extension PCLBlurEffectAlertController {
                                                                     attribute: .height,
                                                                     multiplier: 1,
                                                                     constant: 0)
-        cornerView.addConstraints([textAreaBackgroundViewTopConstraint,
-                                   textAreaBackgroundViewRightConstraint,
-                                   textAreaBackgroundViewLeftConstraint,
-                                   textAreaBackgroundViewHeightConstraint])
+        DispatchQueue.main.async {
+            guard let textAreaBackgroundViewHeightConstraint = self.textAreaBackgroundViewHeightConstraint else {return}
+            self.cornerView.addConstraints([textAreaBackgroundViewTopConstraint,
+                                       textAreaBackgroundViewRightConstraint,
+                                       textAreaBackgroundViewLeftConstraint,
+                                       textAreaBackgroundViewHeightConstraint])
+        }
     }
     func adjustLayout() {
-        guard isNeedlayout else { return }
-        isNeedlayout = false
-        overlayView.backgroundColor = overlayBackgroundColor
-        alertView.layer.cornerRadius = cornerRadius
-        alertView.clipsToBounds = true
-        alertViewWidthConstraint.constant = alertViewWidth
-        cornerView.layer.cornerRadius = cornerRadius
-        cornerView.clipsToBounds = true
+        guard self.isNeedlayout else { return }
+        self.isNeedlayout = false
+        self.overlayView.backgroundColor = self.overlayBackgroundColor
+        self.alertView.layer.cornerRadius = self.cornerRadius
+        self.alertView.clipsToBounds = true
+        self.alertViewWidthConstraint?.constant = self.alertViewWidth
+        self.cornerView.layer.cornerRadius = self.cornerRadius
+        self.cornerView.clipsToBounds = true
         var textAreaPositionY: CGFloat = 0
-        textAreaPositionY += (margin * 2)
-        let textAreaWidth = alertViewWidth - (margin * 4)
-        if hasTitle {
-            titleLabel.frame.size = CGSize(width: textAreaWidth, height: 0)
-            titleLabel.numberOfLines = 0
-            titleLabel.textAlignment = .center
-            titleLabel.font = titleFont
-            titleLabel.textColor = titleColor
-            titleLabel.text = title
-            titleLabel.sizeToFit()
-            titleLabel.frame = CGRect(x: margin * 2,
-                                      y: textAreaPositionY,
-                                      width: textAreaWidth,
-                                      height: titleLabel.frame.height)
-            textAreaView.addSubview(titleLabel)
-            textAreaPositionY += titleLabel.frame.height
+        textAreaPositionY += (self.margin * 2)
+        let textAreaWidth = self.alertViewWidth - (self.margin * 4)
+        if self.hasTitle {
+            self.titleLabel.frame.size = CGSize(width: textAreaWidth, height: 0)
+            self.titleLabel.numberOfLines = 0
+            self.titleLabel.textAlignment = .center
+            self.titleLabel.font = self.titleFont
+            self.titleLabel.textColor = self.titleColor
+            self.titleLabel.text = self.title
+            self.titleLabel.sizeToFit()
+            self.titleLabel.frame = CGRect(x: self.margin * 2,
+                                           y: textAreaPositionY,
+                                           width: textAreaWidth,
+                                           height: self.titleLabel.frame.height)
+            self.textAreaView.addSubview(self.titleLabel)
+            textAreaPositionY += self.titleLabel.frame.height
         }
-        if hasMessage {
-            if hasTitle {
-                textAreaPositionY += margin
+        if self.hasMessage {
+            if self.hasTitle {
+                textAreaPositionY += self.margin
             }
-            messageLabel.frame.size = CGSize(width: textAreaWidth, height: 0)
-            messageLabel.numberOfLines = 0
-            messageLabel.textAlignment = .center
-            messageLabel.text = message
-            messageLabel.font = messageFont
-            messageLabel.textColor = messageColor
-            messageLabel.sizeToFit()
-            messageLabel.frame = CGRect(x: margin * 2,
-                                        y: textAreaPositionY,
-                                        width: textAreaWidth,
-                                        height: messageLabel.frame.height)
-            textAreaView.addSubview(messageLabel)
-            textAreaPositionY += messageLabel.frame.height
+            self.messageLabel.frame.size = CGSize(width: textAreaWidth, height: 0)
+            self.messageLabel.numberOfLines = 0
+            self.messageLabel.textAlignment = .center
+            self.messageLabel.text = self.message
+            self.messageLabel.font = self.messageFont
+            self.messageLabel.textColor = self.messageColor
+            self.messageLabel.sizeToFit()
+            self.messageLabel.frame = CGRect(x: self.margin * 2,
+                                             y: textAreaPositionY,
+                                             width: textAreaWidth,
+                                             height: self.messageLabel.frame.height)
+            self.textAreaView.addSubview(self.messageLabel)
+            textAreaPositionY += self.messageLabel.frame.height
         }
-        if let imageView = imageView, let image = imageView.image { // hasImageView
-            if hasTitle || hasMessage {
+        if let imageView = self.imageView, let image = imageView.image { // hasImageView
+            if self.hasTitle || hasMessage {
                 textAreaPositionY += margin
             }
             let width = min(alertViewWidth - (margin * 2), image.size.width)
@@ -699,9 +733,9 @@ private extension PCLBlurEffectAlertController {
             textAreaPositionY = 0
         }
         textAreaHeight = textAreaPositionY
-        textAreaViewHeightConstraint.constant = textAreaHeight
-        textAreaVisualEffectViewHeightConstraint.constant = textAreaHeight
-        textAreaBackgroundViewHeightConstraint.constant = textAreaHeight
+        textAreaViewHeightConstraint?.constant = textAreaHeight
+        textAreaVisualEffectViewHeightConstraint?.constant = textAreaHeight
+        textAreaBackgroundViewHeightConstraint?.constant = textAreaHeight
         var cornerViewHeight = textAreaHeight
         var alertViewHeight: CGFloat = 0
         // button setUp
@@ -828,7 +862,7 @@ private extension PCLBlurEffectAlertController {
         default:
             alertViewHeight = cornerViewHeight
         }
-        alertViewHeightConstraint.constant = alertViewHeight
+        alertViewHeightConstraint?.constant = alertViewHeight
         view.layoutIfNeeded()
     }
     @objc dynamic func buttonWasTouchUpInside(_ sender: UIButton) {

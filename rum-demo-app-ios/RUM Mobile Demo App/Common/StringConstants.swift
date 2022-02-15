@@ -20,4 +20,10 @@ struct StringConstants{
     static let slowNetworkMsg = "No internet connection".localized()
     static let unableToResolveHost = "Unable to resolve host \"%@\": No address associated with hostname".localized()
     static let CommonErrorMsg =  "Something went wrong, please try again".localized()
+    static let paymentFailed = "Payment Failed"
+    static let paymentFailedDueToCC = "The provided credit card number is invalid, resulting in payment failure."
+    static let paymentFailedDueToLocation = "We are apologise for inconvenience, but we cannot accept Payment in France."
+    static let noInternetMessage = "There was a problem connecting to the server, please checked your network connection, and then try again."
+    static let noInternetTitle = "Network issue"
+    static let confirmEmptyCart = "Are you sure you want to empty your cart?"
 }

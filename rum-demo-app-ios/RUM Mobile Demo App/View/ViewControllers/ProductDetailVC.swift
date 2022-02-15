@@ -19,7 +19,9 @@ class ProductDetailVC: UIViewController{
     var product : ProductList?
     var likeProducts = [ProductList]() {
         didSet {
-            self.collectionview.reloadData()
+            DispatchQueue.main.async {
+                self.collectionview.reloadData()
+            }
         }
     }
     var productQuantity : Int = 1
@@ -29,7 +31,9 @@ class ProductDetailVC: UIViewController{
         self.collectionview.register(UINib(nibName: "ProductListCell", bundle: nil), forCellWithReuseIdentifier: "ProductListCell")
         self.collectionview.contentInset = UIEdgeInsets.init(top: 0, left: 0, bottom: 20, right: 0)
         
-        RumEventHelper.shared.trackCustomRumEventFor(.productViewed, attributes: ["product.name" : self.product?.name ?? ""])
+        if let productName = self.product?.name, !productName.isEmpty {
+            RumEventHelper.shared.trackCustomRumEventFor(.productViewed, additionalAppendingString: productName, attributes: ["product.name" : productName])
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -73,25 +77,29 @@ class ProductDetailVC: UIViewController{
     */
     @objc func btnAddToCartClicked() {
         
-        //Check if there is error action "cart" is defined for the selected product
-        if self.product?.errorAction.lowercased() == ProductErrorAction.cart.rawValue {
-            
-            if self.product?.errorType.lowercased() == ProductErrorType.crash.rawValue {
-                //Crash the app
-                StaticEventsVM().crashApp()
+        handleNoInternetConnection {
+            //Check if there is error action "cart" is defined for the selected product
+            if self.product?.errorAction.lowercased() == ProductErrorAction.cart.rawValue {
+                
+                if self.product?.errorType.lowercased() == ProductErrorType.crash.rawValue {
+                    //Crash the app
+                    StaticEventsVM().crashApp()
+                }
             }
+            
+            //Add custom Rum event
+            RumEventHelper.shared.trackCustomRumEventFor(.addToCart)
+            
+            //add current product(items with quantity) in to cart shared instance
+            let selectedProduct = pickedProduct(product: self.product!, quantity: self.productQuantity)
+            self.cartViewModel.addItemToCart(item: selectedProduct)
+            
+            self.navigationController?.popToRootViewController(animated: false)
+            
+            //show card tab selected.
+            let tabContoller = window?.rootViewController as? SlideAnimatedTabbarController
+            tabContoller?.animateToTab(toIndex: 1, completionHandler: {success in })
         }
-        
-        //add current product(items with quantity) in to cart shared instance
-        let selectedProduct = pickedProduct(product: self.product!, quantity: self.productQuantity)
-        cartViewModel.addItemToCart(item: selectedProduct)
-        
-        self.navigationController?.popToRootViewController(animated: false)
-        
-        //show card tab selected.
-        let tabContoller = window?.rootViewController as? SlideAnimatedTabbarController
-        tabContoller?.animateToTab(toIndex: 1, completionHandler: {success in })
-        
     }
     
 }
@@ -126,7 +134,7 @@ extension ProductDetailVC : UICollectionViewDelegateFlowLayout , UICollectionVie
         let product = self.likeProducts[indexPath.row]
         cell.lblName.text = product.name.uppercased()
         cell.lblName.addTextSpacing(spacing: 4.5)
-        cell.lblPrice.text = "\(product.priceUsd?.currencyCode ?? Constants.DefaultCurrencyCode) \(product.priceUsd?.units?.description ?? "00").\(product.priceUsd?.nanos?.description.substring(to: 2) ?? "00")"
+        cell.lblPrice.text = "\(product.priceUsd?.currencyCode ?? Constants.DefaultCurrencyCode) \(product.priceUsd?.price?.description ?? "00.00")"
         
         cell.productImage.image = UIImage.init(named: product.picture)
        
@@ -138,9 +146,12 @@ extension ProductDetailVC : UICollectionViewDelegateFlowLayout , UICollectionVie
 extension ProductDetailVC: UICollectionViewDelegate {
 
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        guard let vc = mainStoryBoard.instantiateViewController(withIdentifier: "ProductDetailVC") as? ProductDetailVC else { return }
-        vc.product = self.likeProducts[indexPath.item]
-        navigationController?.pushViewController(vc, animated: true)
+        handleNoInternetConnection {
+            guard let vc = mainStoryBoard.instantiateViewController(withIdentifier: "ProductDetailVC") as? ProductDetailVC else { return }
+            vc.product = self.likeProducts[indexPath.item]
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+
     }
     
     func collectionView(_ collectionView: UICollectionView,
@@ -156,31 +167,34 @@ extension ProductDetailVC: UICollectionViewDelegate {
                     fatalError("Invalid view type")
             }
             
-            headerView.btnAddToCart.addTextSpacing()
-            headerView.btnAddToCart.addTarget(self, action: #selector(self.btnAddToCartClicked), for: .touchUpInside)
-           
-            headerView.lblProductName.text = self.product?.name.uppercased()
-            headerView.lblProductName.addTextSpacing(spacing: 4.5)
-            headerView.lblPrice.text = "\(self.product?.priceUsd?.currencyCode ?? Constants.DefaultCurrencyCode) \(self.product?.priceUsd?.units?.description ?? "00").\(self.product?.priceUsd?.nanos?.description.substring(to: 2) ?? "00")"
-            
-            headerView.productImgView.image = UIImage.init(named: self.product?.picture ?? "")
-            
-            headerView.lblProductDescription.text = self.product?.description
-            headerView.txtQty.text = "\(self.productQuantity)"
-            headerView.qtyUpdatedCallBack = { (qty) -> Void in
+            DispatchQueue.main.async {
+                headerView.btnAddToCart.addTextSpacing()
+                headerView.btnAddToCart.addTarget(self, action: #selector(self.btnAddToCartClicked), for: .touchUpInside)
+               
+                headerView.lblProductName.text = self.product?.name.uppercased()
+                headerView.lblProductName.addTextSpacing(spacing: 4.5)
+                headerView.lblPrice.text = "\(self.product?.priceUsd?.currencyCode ?? Constants.DefaultCurrencyCode) \(self.product?.priceUsd?.price ?? 0)"
                 
-                if self.product?.errorType.lowercased() == ProductErrorType.exception.rawValue {
-                    if (Int(qty) ?? 1) > self.product?.availableQty ?? 1 {
-                        let errorMessage = "Maximum available stock size is 1 and the quantity added by the user is > 1 , an exception will be generated and the user will not be able to add it to the cart."
-                        headerView.txtQty.endEditing(true)
-                        handleException(errorstring: errorMessage)
-                        self.showAlertMessage(title: "Error", message: errorMessage, handlers: nil)
-                        headerView.txtQty.text = self.productQuantity.description
-                    } else {
-                        self.productQuantity = Int(qty) ?? 1
+                headerView.productImgView.image = UIImage.init(named: self.product?.picture ?? "")
+                
+                headerView.lblProductDescription.text = self.product?.description
+                headerView.txtQty.text = "\(self.productQuantity)"
+                headerView.qtyUpdatedCallBack = { (qty) -> Void in
+                    
+                    if self.product?.errorType.lowercased() == ProductErrorType.exception.rawValue {
+                        if (Int(qty) ?? 1) > self.product?.availableQty ?? 1 {
+                            let errorMessage = "Maximum available stock size is 1 and the quantity added by the user is > 1 , an exception will be generated and the user will not be able to add it to the cart."
+                            headerView.txtQty.endEditing(true)
+                            handleException(errorstring: errorMessage)
+                            self.showAlertNativeSingleAction("Error", message: errorMessage)
+                            headerView.txtQty.text = self.productQuantity.description
+                        } else {
+                            self.productQuantity = Int(qty) ?? 1
+                        }
                     }
                 }
             }
+            
             return headerView
 
         default:

@@ -92,16 +92,28 @@ class CheckOutVC  : UIViewController{
         self.view.endEditing(true)
         guard validateInputs() else { return }
         
-        RumEventHelper.shared.trackCustomRumEventFor(.payment)
+        RumEventHelper.shared.trackCustomRumEventFor(.placeOrder)
         
         if self.txtCreditCardNumber.text == "0000-0000-0000-0000" {
             //Generate payment failure exception
-            RumEventHelper.shared.addError("Payment Failed", attributes: nil)
-            self.showAlertMessage(title: "Payment Failed", message: "The provided credit card number is invalid, resulting in payment failure.", handlers: nil)
-        } else {
-            checkoutViewModel.callCheckoutAPI(email: self.txtEmailAddress.text ?? "", streetAddress: self.txtStreetAddress.text ?? "", zipCode: self.txtZipCode.text ?? "", city: self.txtCity.text ?? "", state: self.txtState.text ?? "", country: self.txtCountry.text ?? "", creditCarNumber: self.txtCreditCardNumber.text ?? "", creditCardExpMonth: self.txtMonth.text ?? "", creditCardExpYear: self.txtYear.text ?? "", creditCardCVV: self.txtCVV.text ?? "") {
-                let vc = mainStoryBoard.instantiateViewController(withIdentifier: "CompleteOrderVC")
-                self.navigationController?.pushViewController(vc, animated: true)
+            RumEventHelper.shared.addError(RumEventHelper.RumCustomEvent.paymentFailed.rawValue, attributes: ["error" : StringConstants.paymentFailedDueToCC])
+            self.showAlertNativeSingleAction(StringConstants.paymentFailed, message: StringConstants.paymentFailedDueToCC)
+        } else if RumEventHelper.shared.shouldFailPayment {
+            //Generate payment failure exception
+            RumEventHelper.shared.addError(RumEventHelper.RumCustomEvent.paymentFailed.rawValue, attributes: ["error" : StringConstants.paymentFailedDueToLocation])
+            self.showAlertNativeSingleAction(StringConstants.paymentFailed, message: StringConstants.paymentFailedDueToLocation)
+        }else {
+            checkoutViewModel.callCheckoutAPI(email: self.txtEmailAddress.text ?? "", streetAddress: self.txtStreetAddress.text ?? "", zipCode: self.txtZipCode.text ?? "", city: self.txtCity.text ?? "", state: self.txtState.text ?? "", country: self.txtCountry.text ?? "", creditCarNumber: self.txtCreditCardNumber.text ?? "", creditCardExpMonth: self.txtMonth.text ?? "", creditCardExpYear: self.txtYear.text ?? "", creditCardCVV: self.txtCVV.text ?? "") { errorMessage in
+                
+                DispatchQueue.main.async {
+                    if let error = errorMessage {
+                        RumEventHelper.shared.addError(RumEventHelper.RumCustomEvent.paymentFailed.rawValue, attributes: nil)
+                        self.showAlertNativeSingleAction("Failed!", message: error)
+                    } else {
+                        let vc = mainStoryBoard.instantiateViewController(withIdentifier: "CompleteOrderVC")
+                        self.navigationController?.pushViewController(vc, animated: true)
+                    }
+                }
             }
         }
     }

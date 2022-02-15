@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19529" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="19162" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" launchScreen="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="01J-lp-oVM">
     <device id="retina6_7" orientation="portrait" appearance="light"/>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19519"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="19144"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
@@ -26,6 +26,7 @@
                         <constraints>
                             <constraint firstItem="itf-YH-Yyo" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" constant="70" id="1HP-4l-grK"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="top" secondItem="itf-YH-Yyo" secondAttribute="top" constant="88" id="7EX-4v-DvG"/>
+                            <constraint firstItem="itf-YH-Yyo" firstAttribute="centerY" secondItem="6Tk-OE-BBY" secondAttribute="centerY" id="9Wa-zH-YsX"/>
                             <constraint firstItem="itf-YH-Yyo" firstAttribute="bottom" secondItem="6Tk-OE-BBY" secondAttribute="bottom" constant="34" id="S7b-3g-R5h"/>
                             <constraint firstItem="itf-YH-Yyo" firstAttribute="centerX" secondItem="6Tk-OE-BBY" secondAttribute="centerX" id="q4W-Wh-xED"/>
                             <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="itf-YH-Yyo" secondAttribute="trailing" constant="70" id="yhw-0I-6zg"/>

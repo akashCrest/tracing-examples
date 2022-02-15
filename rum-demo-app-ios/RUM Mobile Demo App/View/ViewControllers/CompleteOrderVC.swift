@@ -36,7 +36,7 @@ class CompleteOrderVC  : UIViewController{
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        self.addBlueHeader(title: "", isRightButtonHidden: false, isBackButtonHidden: false)
+        self.addBlueHeader(title: "", isRightButtonHidden: true, isBackButtonHidden: true)
         btnKeepBrowsing.addTextSpacing()
         
         DispatchQueue.main.async {
@@ -49,12 +49,16 @@ class CompleteOrderVC  : UIViewController{
     @IBAction func btnKeepBrowsingClicked(_ sender: Any) {
         // pop to product list
         //show card tab selected.
-        sharedCart.cartItems?.removeAll()
-        self.navigationController?.popToRootViewController(animated: false)
-        
-        let tabContoller = window?.rootViewController as? SlideAnimatedTabbarController
-        //tabContoller?.selectedIndex = 0
-        tabContoller?.animateToTab(toIndex: 0, completionHandler: {success in })
+        DispatchQueue.main.async {
+            CartVM().emptyCart()
+            sharedCart.cartItems?.removeAll()
+            self.navigationController?.popToRootViewController(animated: false)
+            
+            let tabContoller = window?.rootViewController as? SlideAnimatedTabbarController
+            //tabContoller?.selectedIndex = 0
+            tabContoller?.animateToTab(toIndex: 0, completionHandler: {success in })
+            tabContoller?.tabBar.removeBadge(fromIndex: 1)
+        }
         
     }
 }

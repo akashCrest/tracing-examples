@@ -36,7 +36,7 @@ class CartVM{
      *Parameter productID: The ID of product selected by user.
     */
     func callCartAPI(completion : @escaping (_ errorMessage: String?)->Void) {
-        DataService.request(getURL(for: ApiName.Cart.rawValue), method: .get, params: nil, type: ProductDetail.self) { productDetail, errorMessage, responseCode in
+        DataService.request(getURL(for: ApiName.Cart.rawValue), method: "GET", params: nil, type: ProductDetail.self) { productDetail, errorMessage, responseCode in
             
             completion(errorMessage)
         }

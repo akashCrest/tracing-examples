@@ -65,37 +65,38 @@ func animateSliding(fromController: UIViewController?, toController: UIViewContr
     }
     
     func animateToTab(toIndex: Int,completionHandler: @escaping (_ success:Bool) -> Void) {
-            guard let tabViewControllers = viewControllers,
-                let selectedVC = selectedViewController else { return }
-
+        DispatchQueue.main.async {
+            guard let tabViewControllers = self.viewControllers,
+                  let selectedVC = self.selectedViewController else { return }
+            
             guard let fromView = selectedVC.view,
-                let toView = tabViewControllers[toIndex].view,
+                  let toView = tabViewControllers[toIndex].view,
                   let fromIndex = tabViewControllers.firstIndex(of: selectedVC),
-                fromIndex != toIndex else { return }
-
-
+                  fromIndex != toIndex else { return }
+            
+            
             // Add the toView to the tab bar view
             fromView.superview?.addSubview(toView)
-
+            
             // Position toView off screen (to the left/right of fromView)
             let screenWidth = UIScreen.main.bounds.size.width
             let scrollRight = toIndex > fromIndex
             let offset = (scrollRight ? screenWidth : -screenWidth)
             toView.center = CGPoint(x: fromView.center.x + offset, y: toView.center.y)
-
+            
             // Disable interaction during animation
-            view.isUserInteractionEnabled = false
-
+            self.view.isUserInteractionEnabled = false
+            
             UIView.animate(withDuration: 0.3,
                            delay: 0.0,
                            usingSpringWithDamping: 1,
                            initialSpringVelocity: 0,
                            options: .curveEaseOut,
                            animations: {
-                            // Slide the views by -offset
-                            fromView.center = CGPoint(x: fromView.center.x - offset, y: fromView.center.y)
-                            toView.center = CGPoint(x: toView.center.x - offset, y: toView.center.y)
-
+                // Slide the views by -offset
+                fromView.center = CGPoint(x: fromView.center.x - offset, y: fromView.center.y)
+                toView.center = CGPoint(x: toView.center.x - offset, y: toView.center.y)
+                
             }, completion: { finished in
                 // Remove the old view from the tabbar view.
                 fromView.removeFromSuperview()
@@ -104,6 +105,7 @@ func animateSliding(fromController: UIViewController?, toController: UIViewContr
                 completionHandler(true)
             })
         }
+    }
     
 }
 
@@ -125,9 +127,11 @@ extension UITabBar {
         
     }
     func removeBadge(fromIndex:Int) {
-        if let tabItems = self.items {
-            let tabItem = tabItems[fromIndex]
-            tabItem.badgeValue = nil
+        DispatchQueue.main.async {
+            if let tabItems = self.items {
+                let tabItem = tabItems[fromIndex]
+                tabItem.badgeValue = nil
+            }
         }
     }
     

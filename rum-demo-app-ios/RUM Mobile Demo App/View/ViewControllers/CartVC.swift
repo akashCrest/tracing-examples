@@ -28,6 +28,12 @@ class CartVC  : UIViewController{
     
     @IBOutlet weak var lblTotalCostPrice: UILabel!
     
+    @IBOutlet weak var viewForCartItems: UIView!
+    @IBOutlet weak var viewForEmptyCart: UIView!
+    @IBOutlet weak var btnBrowseProducts: UIButton!
+    @IBOutlet weak var lblEmptyCartTitle: UILabel!
+    @IBOutlet weak var lblEmptyCartDescription: UILabel!
+    
     
     var cartViewModel = CartVM()
     var selectedProducts = [pickedProduct]()
@@ -42,16 +48,25 @@ class CartVC  : UIViewController{
         self.addBlueHeader(title: "RUM Mobile Demo", isRightButtonHidden: false, isBackButtonHidden: true)
         viewPriceInfo.addShadow()
         btnCheckOut.addTextSpacing()
+        btnBrowseProducts.addTextSpacing()
+        self.lblEmptyCartTitle.addTextSpacing(spacing: 2)
+        self.lblEmptyCartDescription.addTextSpacing(spacing: 2)
         setTopConstraint()
-        cartViewModel.callCartAPI { errorMessage in
-            if let error = errorMessage {
-                self.showAlertMessage(title: "Error", message: error, handlers: nil)
-                return
-            }
-            self.showCartInformation()
-        }
         
-        RumEventHelper.shared.trackCustomRumEventFor(.cart)
+        if sharedCart.cartItems?.count ?? 0 == 0 {
+            self.viewForCartItems.isHidden = true
+            self.viewForEmptyCart.isHidden = false
+        } else {
+            self.viewForCartItems.isHidden = false
+            self.viewForEmptyCart.isHidden = true
+            cartViewModel.callCartAPI { errorMessage in
+                if let error = errorMessage {
+                    self.showAlertNativeSingleAction("Error", message: error)
+                    return
+                }
+                self.showCartInformation()
+            }
+        }
     }
     func setTopConstraint(){
         if UIDevice.current.hasNotch {
@@ -63,40 +78,56 @@ class CartVC  : UIViewController{
     }
     func showCartInformation(){
         
-        selectedProducts = sharedCart.cartItems!
-        
-        var itemCount = 0
-        
-        var totalCost : Float = 0
-        for eachItem in selectedProducts {
-            let priceString = "\(eachItem.product.priceUsd?.units?.description ?? "00").\(eachItem.product.priceUsd?.nanos?.description.substring(to: 2) ?? "00")"
-            totalCost = totalCost + (Float(priceString) ?? 1) * Float(eachItem.quantity)
+        DispatchQueue.main.async {
+            self.selectedProducts = sharedCart.cartItems!
             
-            itemCount += eachItem.quantity
+            var itemCount = 0
+            
+            var totalCost : Double = 0
+            for eachItem in self.selectedProducts {
+                let priceString = "\(eachItem.product.priceUsd?.price ?? 0)"
+                totalCost = totalCost + (Double(priceString) ?? 1) * Double(eachItem.quantity)
+                
+                itemCount += eachItem.quantity
+            }
+            
+            self.lblTotalCostPrice.text = "\(Constants.DefaultCurrencyCode) \(totalCost.rounded(toPlaces: 2))"
+            
+            self.lblCartCount.text = "\(itemCount) item(s) in your cart"
+            sharedCart.setItemsCountAsBadge()  // set item count as badge
+            
+            self.tblCart.reloadData()
         }
-        
-        lblTotalCostPrice.text = "\(Constants.DefaultCurrencyCode) \(totalCost)"
-        
-        lblCartCount.text = "\(itemCount) item(s) in your cart"
-        sharedCart.setItemsCountAsBadge()  // set item count as badge
-        
-        tblCart.reloadData()
     }
     
     //MARK: - Button Action
+    
+    @IBAction func btnBrowseProductsClicked(_ sender: Any) {
+        self.gotoHomeTab(andRemoveBadge: true, andShowProductDetail: false, withProduct: nil)
+    }
+    
     @IBAction func btnCheckOutClicked(_ sender: Any) {
-        let vc = mainStoryBoard.instantiateViewController(withIdentifier: "CheckOutVC")
-        navigationController?.pushViewController(vc, animated: true)
+        handleNoInternetConnection {
+            let vc = mainStoryBoard.instantiateViewController(withIdentifier: "CheckOutVC")
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
+
     }
     
     @IBAction func btnEmptyCartClicked(_ sender: Any) {
         
-        StaticEventsVM().slowApiResponse() {
-            StaticEventsVM().slowApiResponse()
-            
-            self.cartViewModel.emptyCart()
-            self.gotoHomeTab(andRemoveBadge: true, andShowProductDetail: false, withProduct: nil)
-        }
+        self.showAlertNativeDoubleAction("", message: StringConstants.confirmEmptyCart, buttonTitle1: "No", clickHandler1: nil, buttonTitle2: "Yes", clickHandler2: {
+            StaticEventsVM().slowApiResponse() {
+                self.cartViewModel.emptyCart()
+                
+                DispatchQueue.main.async {
+                    let tabContoller = window?.rootViewController as? SlideAnimatedTabbarController
+                    tabContoller?.tabBar.removeBadge(fromIndex: 1)
+                    self.viewForEmptyCart.isHidden = false
+                    self.viewForCartItems.isHidden = true
+                }
+            }
+        })
     }
     
     /**
@@ -147,7 +178,7 @@ extension CartVC : UITableViewDelegate, UITableViewDataSource{
         cell.lblProductID.text = "SKU: \(product.product.id)"
         cell.lblQuantity.text = "Quantity: \(product.quantity)"
         
-        cell.lblPrice.text =  "\(product.product.priceUsd?.currencyCode ?? Constants.DefaultCurrencyCode) \(product.product.priceUsd?.units?.description ?? "00").\(product.product.priceUsd?.nanos?.description.substring(to: 2) ?? "00")"
+        cell.lblPrice.text =  "\(product.product.priceUsd?.currencyCode ?? Constants.DefaultCurrencyCode) \(product.product.priceUsd?.price ?? 0)"
         
         cell.productImg.image = UIImage.init(named: product.product.picture)
         cell.productImg.contentMode = .scaleAspectFill

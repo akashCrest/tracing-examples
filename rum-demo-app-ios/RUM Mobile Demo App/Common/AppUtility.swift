@@ -7,7 +7,6 @@
 
 import Foundation
 import SplunkOtel
-import Alamofire
 import OpenTelemetryApi
 import OpenTelemetrySdk
 
@@ -23,7 +22,7 @@ func handleException(exception : NSException){
 
 class Connectivity {
     class var isConnectedToInternet:Bool {
-        return NetworkReachabilityManager()!.isReachable
+        return Reachability.isConnectedToNetwork()
     }
 }
 

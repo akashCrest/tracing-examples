@@ -7,7 +7,6 @@
 
 import UIKit
 import Foundation
-import Alamofire
 import ObjectMapper
 
 
@@ -55,6 +54,7 @@ class productPrice : Mappable {
     var currencyCode : String?
     var units : Int?
     var nanos : Int?
+    var price : Double?
     
     required init?(map: Map) {
     }
@@ -63,6 +63,7 @@ class productPrice : Mappable {
         currencyCode    <- map["currencyCode"]
         units           <- map["units"]
         nanos           <- map["nanos"]
+        price           <- map["price"]
     }
 }
 

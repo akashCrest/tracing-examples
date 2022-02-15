@@ -17,17 +17,19 @@ class ProductListVC : UIViewController {
     let viewModel = ProductListVM()
     var products = [ProductList]() {
         didSet {
-            self.collectionview.reloadData()
+            DispatchQueue.main.async {
+                self.collectionview.reloadData()
+            }
         }
     }
-        
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-         
+        
         self.collectionview.register(UINib(nibName: "ProductListCell", bundle: nil), forCellWithReuseIdentifier: "ProductListCell")
         
         self.collectionview.register(UINib(nibName: "ProductListHeaderCell", bundle: nil), forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader, withReuseIdentifier: "ProductListHeaderCell")
-       
+        
         self.attemptFetchProductList()
         
     }
@@ -43,11 +45,11 @@ class ProductListVC : UIViewController {
     // MARK: - Networking
     /**
      *description: Fetch product list API call and setting data.
-    */
+     */
     private func attemptFetchProductList() {
         viewModel.fetchProducts { errorMessage, products in
             if let error = errorMessage {
-                self.showAlertMessage(title: "Error", message: error, handlers: nil)
+                self.showAlertNativeSingleAction("Error", message: error)
                 return
             }
             self.products = products
@@ -57,7 +59,7 @@ class ProductListVC : UIViewController {
             if let error = self.viewModel.error {
                 let actionOK = PCLBlurEffectAlertAction(title: "OK".localized(), style: .default) {_ in }
                 
-                self.showAlertMessage(title:StringConstants.alertTitle , message: error.localizedDescription, handlers: [actionOK])
+                self.showAlertNativeSingleAction(StringConstants.alertTitle , message: error.localizedDescription)
                 print(error.localizedDescription)
             }
         }
@@ -70,57 +72,58 @@ class ProductListVC : UIViewController {
 }
 extension ProductListVC :  UICollectionViewDataSource,UICollectionViewDelegateFlowLayout{
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-
+        
         var noOfCellsInRow = 2
         if UIDevice.current.userInterfaceIdiom == .pad{
             noOfCellsInRow = 3
         }
-
+        
         let flowLayout = collectionViewLayout as! UICollectionViewFlowLayout
-
+        
         let totalSpace = flowLayout.sectionInset.left
-            + flowLayout.sectionInset.right
-            + (flowLayout.minimumInteritemSpacing * CGFloat(noOfCellsInRow - 1))
-
+        + flowLayout.sectionInset.right
+        + (flowLayout.minimumInteritemSpacing * CGFloat(noOfCellsInRow - 1))
+        
         let size = Int((collectionView.bounds.width - totalSpace) / CGFloat(noOfCellsInRow))
-
+        
         return CGSize(width: size, height: 230)
     }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-       // return 10
+        // return 10
         return self.products.count
     }
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-   
+        
         guard let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "ProductListCell", for: indexPath) as? ProductListCell else {
             return UICollectionViewCell()
         }
         let product = self.products[indexPath.row]
         cell.lblName.text = product.name.uppercased()
         cell.lblName.addTextSpacing(spacing: 4.5)
-        cell.lblPrice.text = "\(product.priceUsd?.currencyCode ?? Constants.DefaultCurrencyCode) \(product.priceUsd?.units?.description ?? "00").\(product.priceUsd?.nanos?.description.substring(to: 2) ?? "00")"
+        cell.lblPrice.text = "\(product.priceUsd?.currencyCode ?? Constants.DefaultCurrencyCode) \(product.priceUsd?.price ?? 0)"
         
         cell.productImage.image = UIImage.init(named: product.picture)
         
-       return cell
+        return cell
     }
     
 }
 extension ProductListVC: UICollectionViewDelegate {
-
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let vc = mainStoryBoard.instantiateViewController(withIdentifier: "ProductDetailVC") as! ProductDetailVC
-        vc.product = self.products[indexPath.row]
-        navigationController?.pushViewController(vc, animated: true)
- 
+        handleNoInternetConnection {
+            let vc = mainStoryBoard.instantiateViewController(withIdentifier: "ProductDetailVC") as! ProductDetailVC
+            vc.product = self.products[indexPath.row]
+            self.navigationController?.pushViewController(vc, animated: true)
+        }
     }
     
     func collectionView(_ collectionView: UICollectionView,
                         viewForSupplementaryElementOfKind kind: String,
                         at indexPath: IndexPath) -> UICollectionReusableView {
-
+        
         switch kind {
-
+            
         case UICollectionView.elementKindSectionHeader:
             let headerView = collectionView.dequeueReusableSupplementaryView(ofKind: kind, withReuseIdentifier: "ProductListHeaderCell", for: indexPath) as! ProductListHeaderCell
             
@@ -130,22 +133,20 @@ extension ProductListVC: UICollectionViewDelegate {
             else{
                 headerView.lblShipping.font = UIFont(name: config.fontNameMedium, size: config.midLargeLabelSize)
             }
-           
+            
             return headerView
-
+            
         default:
             assert(false, "Unexpected element kind")
-            return UICollectionReusableView()
         }
     }
-    
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, referenceSizeForHeaderInSection section: Int) -> CGSize {
-        var multiplier = 35.0
+        var multiplier : CGFloat = 35.0
         if UIDevice.current.userInterfaceIdiom == .pad {
             multiplier = 50.0
         }
         let hh = self.view.frame.size.height * multiplier / 100  //294.0 == 34.84 %
-       
+        
         return CGSize(width: collectionView.frame.width, height:hh)
     }
 }

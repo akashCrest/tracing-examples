@@ -8,36 +8,36 @@
 import Foundation
 import UIKit
 
- let window = UIApplication.shared.keyWindow
+let window = UIApplication.shared.keyWindow
 
- let topPadding = window?.safeAreaInsets.top
+let topPadding = window?.safeAreaInsets.top
 
- let bottomPadding = window?.safeAreaInsets.bottom
+let bottomPadding = window?.safeAreaInsets.bottom
 
- let guide = window?.safeAreaLayoutGuide
+let guide = window?.safeAreaLayoutGuide
 
- let height = guide?.layoutFrame.size.height
+let height = guide?.layoutFrame.size.height
 
- let safeAreaWidth = guide?.layoutFrame.size.width
+let safeAreaWidth = guide?.layoutFrame.size.width
 
 
- 
+
 extension UIViewController {
     
-       func hideKeyboradIfShown(){
-          view.endEditing(true)
-       }
+    func hideKeyboradIfShown(){
+        view.endEditing(true)
+    }
     
-        func hideKeyboardWhenTappedAround() {
-            let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(UIViewController.dismissKeyboard))
-            tap.cancelsTouchesInView = false
-            view.addGestureRecognizer(tap)
-        }
-        
-        @objc func dismissKeyboard() {
-            view.endEditing(true)
-        }
-
+    func hideKeyboardWhenTappedAround() {
+        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(UIViewController.dismissKeyboard))
+        tap.cancelsTouchesInView = false
+        view.addGestureRecognizer(tap)
+    }
+    
+    @objc func dismissKeyboard() {
+        view.endEditing(true)
+    }
+    
     
     func setupNavBar(title: String){
         
@@ -47,11 +47,11 @@ extension UIViewController {
         guard let menuImage = config.settingsIcon, let logoImage = config.navigationTitlelogo else { return }
         
         let menu = UIBarButtonItem.init(image: menuImage, style: .plain, target: self, action: nil)
-       
-
+        
+        
         let space = UIBarButtonItem(barButtonSystemItem: UIBarButtonItem.SystemItem.fixedSpace, target: nil, action: nil)
         space.width = 16.0
-                
+        
         navigationItem.setRightBarButtonItems([menu, space], animated: true)
         
         self.navigationItem.backBarButtonItem = UIBarButtonItem(title: "", style: .plain, target: nil, action: nil)
@@ -78,8 +78,8 @@ extension UIViewController {
             headerView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 75),
         ])
         
-      
-     
+        
+        
     }
     
     func setupNavBarWithoutTools(title: String) {
@@ -119,10 +119,10 @@ extension UIViewController {
             
             headerTitle.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
             headerTitle.leftAnchor.constraint(equalTo: view.leftAnchor, constant: 20),
-   
+            
             headerTitle.rightAnchor.constraint(equalTo: view.rightAnchor, constant: -20),
             headerTitle.heightAnchor.constraint(equalToConstant: 25),
-            ])
+        ])
         
     }
     func navBarHeight() -> Float{
@@ -138,18 +138,18 @@ extension UIViewController {
         }
     }
     func addBlueHeader(title: String, isRightButtonHidden : Bool , isBackButtonHidden : Bool) {
-   
+        
         self.navigationController?.setNavigationBarHidden(true, animated: false)
         self.navigationItem.hidesBackButton = true
         
         let header = UIView()
         header.backgroundColor = .black
-       // header.frame = CGRect(x: 0, y: 20, width: screenWidth, height: CGFloat(Constants.NavigationBarHeight))
+        // header.frame = CGRect(x: 0, y: 20, width: screenWidth, height: CGFloat(Constants.NavigationBarHeight))
         let navbarheight = self.navBarHeight()
         
         header.frame = CGRect(x: 0, y: 0, width: screenWidth, height: CGFloat(navbarheight))
-       
-         
+        
+        
         var yPosition = CGFloat((navbarheight - Constants.NavigationBarButtonHeight)/2)
         
         if UIDevice.current.hasNotch{
@@ -158,9 +158,9 @@ extension UIViewController {
         else{
             yPosition = 18  //26
         }
-         
-         let lbutton = UIButton()
-         lbutton.frame = CGRect(x: 5, y: yPosition, width: CGFloat(Constants.NavigationBarButtonWidth), height: CGFloat(Constants.NavigationBarButtonHeight))
+        
+        let lbutton = UIButton()
+        lbutton.frame = CGRect(x: 5, y: yPosition, width: CGFloat(Constants.NavigationBarButtonWidth), height: CGFloat(Constants.NavigationBarButtonHeight))
         lbutton.backgroundColor = .clear
         lbutton.addTarget(self, action:#selector(gotoPreviousScreen), for: .touchUpInside)
         let image = UIImage(named: "chevron-left")?.withRenderingMode(.alwaysTemplate)
@@ -187,19 +187,19 @@ extension UIViewController {
         logoImageView.image = config.navigationTitlelogo
         logoImageView.frame = CGRect(x: 70 , y: yPosition, width: 211, height: CGFloat(Constants.NavigationBarButtonHeight - 2))
         logoImageView.center.x = self.view.center.x
-       
-       
-         
-         header.addSubview(lbutton)
-         header.addSubview(rbutton)
-         header.addSubview(logoImageView)
-         self.view .addSubview(header)
+        
+        
+        
+        header.addSubview(lbutton)
+        header.addSubview(rbutton)
+        header.addSubview(logoImageView)
+        self.view .addSubview(header)
         
         rbutton.isHidden = isRightButtonHidden
         lbutton.isHidden = isBackButtonHidden
         
     }
-
+    
     
     func setupRemainingNavItems() {
         self.navigationController?.setNavigationBarHidden(false, animated: true)
@@ -211,28 +211,28 @@ extension UIViewController {
         titleImageView.contentMode = .scaleAspectFit
         titleImageView.clipsToBounds = true
         navigationItem.titleView = titleImageView
-
+        
         let button = UIButton(type: .custom)
         button.setImage(UIImage (named: "chevron-left"), for: .normal)
         button.frame = CGRect(x: 0.0, y: 0.0, width: 30.0, height: 30.0)
         button.addTarget(self, action: #selector(gotoPreviousScreen), for: .touchUpInside)
-      
-       
+        
+        
         let barButtonItem = UIBarButtonItem(customView: button)
-
+        
         self.navigationItem.leftBarButtonItem = barButtonItem
         
         let button1 = UIButton(type: .custom)
         button1.setImage(UIImage (named: "chevron-left"), for: .normal)
         button1.frame = CGRect(x: 0.0, y: 0.0, width: 30.0, height: 30.0)
         button1.addTarget(self, action: #selector(gotoPreviousScreen), for: .touchUpInside)
-      
-       
+        
+        
         let barButtonItem1 = UIBarButtonItem(customView: button1)
-
+        
         self.navigationItem.rightBarButtonItem = barButtonItem1
     }
-
+    
     
     @objc private func handlePopViewController() {
         self.navigationController?.popViewController(animated: true)
@@ -243,28 +243,89 @@ extension UIViewController {
             return
         }
     }
-
+    
     @objc func handleDismissKeyboard() {
         for textField in self.view.subviews where textField is UITextField {
-        textField.resignFirstResponder()
+            textField.resignFirstResponder()
         }
     }
-
+    
     @objc func handleDismissSettings() {
         self.dismiss(animated: false, completion: nil)
     }
     
     // MARK: - nav bar button action
     @objc func gotoURLConfigScreen() {
-       
-         let loginNavController = mainStoryBoard.instantiateViewController(withIdentifier: "LoginNavigationController")
-        (UIApplication.shared.delegate as? AppDelegate)?.changeRootViewController(loginNavController)
-
+        
+        NavMenu.showNavMenu {
+            let loginNavController = mainStoryBoard.instantiateViewController(withIdentifier: "LoginNavigationController")
+            (UIApplication.shared.delegate as? AppDelegate)?.changeRootViewController(loginNavController)
+        }
     }
     @objc func gotoPreviousScreen() {
         navigationController?.popViewController(animated: true)
     }
+    
+    func showMenuOption() {
         
+        DispatchQueue.main.async {
+            let viewMainContainer = UIView.init(frame: window?.bounds ?? .zero)
+            viewMainContainer.backgroundColor = UIColor.black.withAlphaComponent(0.3)
+            let viewForMenu = UIView()
+            let lblTitle = UILabel.init(frame: CGRect.init(x: 0, y: 0, width: 150, height: 45))
+            lblTitle.text = "Change Config URL"
+            lblTitle.textAlignment = .center
+            lblTitle.textColor = .black
+            lblTitle.font = UIFont.systemFont(ofSize: 14)
+            lblTitle.backgroundColor = .white
+            viewForMenu.addSubview(lblTitle)
+            viewForMenu.frame.origin.x = UIScreen.main.bounds.width - (lblTitle.frame.width + 20)
+            viewForMenu.frame.origin.y = (window?.safeAreaInsets.top ?? 0) + 15
+            viewForMenu.frame.size.height = 45
+            viewForMenu.backgroundColor = .white
+            
+            
+            
+    //        let tapGesture = UITapGestureRecognizer.init(target: self, action: #selector(changeConfigURLButtonClicked(_:)))
+    //        tapGesture.delegate = self
+    //        viewForMenu.addGestureRecognizer(tapGesture)
+    //
+    //        let tapGestureOfMainView = UITapGestureRecognizer.init(target: self, action: #selector(tappedOutsideView(_:)))
+    //        tapGestureOfMainView.delegate = self
+    //        viewMainContainer.addGestureRecognizer(tapGestureOfMainView)
+            
+            let btnForDismiss = UIButton.init(frame: viewMainContainer.frame)
+            viewMainContainer.addSubview(btnForDismiss)
+            btnForDismiss.addTarget(self, action: #selector(self.tappedOutsideView(_:)), for: .touchUpInside)
+            btnForDismiss.tag = 112010
+            btnForDismiss.isUserInteractionEnabled = true
+            
+            viewMainContainer.addSubview(viewForMenu)
+            
+            let btn = UIButton.init(frame: viewForMenu.frame)
+            viewMainContainer.addSubview(btn)
+            btn.backgroundColor = UIColor.red.withAlphaComponent(0.5)
+            btn.addTarget(self, action: #selector(self.changeConfigURLButtonClicked(_:)), for: .touchUpInside)
+            btn.isUserInteractionEnabled = true
+            
+            viewMainContainer.tag = 102010
+    //        viewMainContainer.bringSubviewToFront(viewForMenu)
+            
+            window?.addSubview(viewMainContainer)
+        }
+    }
+    
+    @objc func changeConfigURLButtonClicked(_ sender : UIButton) {
+        print("CLICKED BUTTON ++ ==>")
+    }
+    
+    @objc func tappedOutsideView(_ sender : UIButton) {
+        print("CLICKED BUTTON ==>>")// \(sender.tag)")
+        if let viewAppeared = window?.viewWithTag(102010) {
+            viewAppeared.removeFromSuperview()
+        }
+    }
+    
     func startSpinner() {
         DispatchQueue.main.async {
             let spinnerView = ActivityIndicatorView()
@@ -278,7 +339,7 @@ extension UIViewController {
                 spinnerView.rightAnchor.constraint(equalTo: self.view.rightAnchor),
                 spinnerView.topAnchor.constraint(equalTo: self.view.topAnchor),
                 spinnerView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor),
-                ])
+            ])
             spinnerView.spinner.startAnimating()
             
             guard let nav = self.navigationController?.navigationBar else { return }
@@ -348,9 +409,9 @@ extension UIViewController {
         let alert = PCLBlurEffectAlertController(title: title, message: message, effect: UIBlurEffect(style: .prominent) , style: .alertVertical)
         
         let okAction = PCLBlurEffectAlertAction(title: "OK".localized(), style: .cancel) { (delay) in
-                self.stopSpinner()
+            self.stopSpinner()
         }
-    
+        
         alert.configure(alertViewWidth: view.frame.width * 0.7)
         guard let titleFont = UIFont(name: config.fontNameRegular, size: config.mediumLabelSize) else { return }
         guard let messageFont = UIFont(name: config.fontNameLight, size: config.smallLabelSize) else { return }
@@ -361,7 +422,7 @@ extension UIViewController {
         alert.configure(cornerRadius: 5)
         alert.addAction(okAction)
         DispatchQueue.main.async {
-           alert.show()
+            alert.show()
         }
     }
     
@@ -405,36 +466,70 @@ extension UIViewController {
         
     }
     
-    
-    func showAlertMessage(title: String, message : String, handlers: [PCLBlurEffectAlertAction]?) {
+    func showAlertNativeSingleAction(_ title: String, message : String, buttonTitle : String = "Okay", clickHandler : (()->Void)? = nil, dismissCompletion : (()->Void)? = nil) {
         
-        let alert = PCLBlurEffectAlertController(title: title, message: message, effect: UIBlurEffect(style: .prominent) , style: .alertVertical)
-        
-        if handlers == nil || handlers?.count == 0{
+        DispatchQueue.main.async {
+            let alertController = UIAlertController.init(title: title, message: message, preferredStyle: .alert)
             
-            let okAction = PCLBlurEffectAlertAction(title: "OK".localized(), style: .cancel) { (delay) in
-                self.stopSpinner()
+            let alertAction = UIAlertAction.init(title: buttonTitle, style: .default) { action in
+                clickHandler?()
             }
-            alert.addAction(okAction)
-
-        }else{
             
-            for action in handlers!{
-              alert.addAction(action)
-            }
+            alertController.addAction(alertAction)
+            self.presentController(viewController: alertController, animated: true)
         }
-        
-        alert.configure(alertViewWidth: view.frame.width * 0.7)
-        guard let titleFont = UIFont(name: config.fontNameRegular, size: config.mediumLabelSize) else { return }
-        guard let messageFont = UIFont(name: config.fontNameLight, size: config.smallLabelSize) else { return }
-        alert.configure(titleFont: titleFont)
-        alert.configure(titleColor: config.commonScreenBgColor)
-        alert.configure(messageFont: messageFont)
-        alert.configure(messageColor: config.textGrayActive)
-        alert.configure(cornerRadius: 5)
-        alert.show()
-
     }
+    
+    func showAlertNativeDoubleAction(_ title: String, message : String, buttonTitle1 : String, clickHandler1 : (()->Void)? = nil, buttonTitle2: String, clickHandler2 : (()->Void)? = nil, dismissCompletion : (()->Void)? = nil) {
+        
+        DispatchQueue.main.async {
+            let alertController = UIAlertController.init(title: title, message: message, preferredStyle: .alert)
+            
+            let alertAction1 = UIAlertAction.init(title: buttonTitle1, style: .default) { action in
+                clickHandler1?()
+            }
+            
+            let alertAction2 = UIAlertAction.init(title: buttonTitle2, style: .default) { action in
+                clickHandler2?()
+            }
+            
+            alertController.addAction(alertAction1)
+            alertController.addAction(alertAction2)
+            self.presentController(viewController: alertController, animated: true)
+        }
+    }
+    
+    /*func showAlertMessage(title: String, message : String, handlers: [PCLBlurEffectAlertAction]?) {
+     
+     DispatchQueue.main.async {
+     let alert = PCLBlurEffectAlertController(title: title, message: message, effect: UIBlurEffect(style: .prominent) , style: .alertVertical)
+     
+     if handlers == nil || handlers?.count == 0{
+     
+     let okAction = PCLBlurEffectAlertAction(title: "OK".localized(), style: .cancel) { (delay) in
+     self.stopSpinner()
+     }
+     alert.addAction(okAction)
+     
+     }else{
+     
+     for action in handlers!{
+     alert.addAction(action)
+     }
+     }
+     
+     alert.configure(alertViewWidth: self.view.frame.width * 0.7)
+     guard let titleFont = UIFont(name: config.fontNameRegular, size: config.mediumLabelSize) else { return }
+     guard let messageFont = UIFont(name: config.fontNameLight, size: config.smallLabelSize) else { return }
+     alert.configure(titleFont: titleFont)
+     alert.configure(titleColor: config.commonScreenBgColor)
+     alert.configure(messageFont: messageFont)
+     alert.configure(messageColor: config.textGrayActive)
+     alert.configure(cornerRadius: 5)
+     alert.show()
+     
+     }
+     }*/
     
     func showActionSheet(title: String, message : String, handlers: [UIAlertAction]) {
         let alert = UIAlertController(title: title, message: message, preferredStyle: .actionSheet)
@@ -573,8 +668,8 @@ class RoundedCornerButton : UIButton {
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
-            
-            // set other operations after super.init, if required
+        
+        // set other operations after super.init, if required
         self.layer.cornerRadius = 8
         self.backgroundColor =  config.commonScreenBgColor
         self.clipsToBounds = true
@@ -599,18 +694,18 @@ class ButtonWithImageAtRight: UIButton {
 // MARK: - UIbutton extenstion
 extension UIButton{
     func addTextSpacing(spacing: CGFloat = 4.5, fontcolor: UIColor = config.buttonTextColor, fonttype: String = config.fontNameBold , fontsize: CGFloat = config.largeLabelSize){
-       
-       
-       let attributedString = NSMutableAttributedString(string: (self.titleLabel?.text!)!)
-       attributedString.addAttribute(NSAttributedString.Key.kern, value: spacing, range: NSRange(location: 0, length: (self.titleLabel?.text!.count)!))
-      
-       attributedString.addAttribute(NSAttributedString.Key.font, value: UIFont(name: fonttype, size: fontsize) as Any, range: NSRange(location: 0, length: (self.titleLabel?.text!.count)!))
-       
-       attributedString.addAttribute(NSAttributedString.Key.foregroundColor, value: fontcolor, range: NSRange(location: 0, length: (self.titleLabel?.text!.count)!))
-     
-       self.setAttributedTitle(attributedString, for: .normal)
-      
-   }
+        
+        
+        let attributedString = NSMutableAttributedString(string: (self.titleLabel?.text!)!)
+        attributedString.addAttribute(NSAttributedString.Key.kern, value: spacing, range: NSRange(location: 0, length: (self.titleLabel?.text!.count)!))
+        
+        attributedString.addAttribute(NSAttributedString.Key.font, value: UIFont(name: fonttype, size: fontsize) as Any, range: NSRange(location: 0, length: (self.titleLabel?.text!.count)!))
+        
+        attributedString.addAttribute(NSAttributedString.Key.foregroundColor, value: fontcolor, range: NSRange(location: 0, length: (self.titleLabel?.text!.count)!))
+        
+        self.setAttributedTitle(attributedString, for: .normal)
+        
+    }
 }
 
 
@@ -679,7 +774,7 @@ class ActivityIndicatorView: UIView {
         } else {
             // Fallback on earlier versions
             ai.style = UIActivityIndicatorView.Style.whiteLarge
-    
+            
         }
         return ai
     }()
@@ -687,8 +782,8 @@ class ActivityIndicatorView: UIView {
     func setupView() {
         addSubview(spinner)
         NSLayoutConstraint.activate([
-        spinner.centerYAnchor.constraint(equalTo: centerYAnchor),
-        spinner.centerXAnchor.constraint(equalTo: centerXAnchor),
+            spinner.centerYAnchor.constraint(equalTo: centerYAnchor),
+            spinner.centerXAnchor.constraint(equalTo: centerXAnchor),
         ])
     }
 }

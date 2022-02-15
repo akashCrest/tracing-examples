@@ -14,14 +14,18 @@ class APProgressHUD {
     
     static let shared = APProgressHUD()
     public func showProgressHUD(_ title : String? = nil) {
-        loadingView = Bundle.main.loadNibNamed("APProgressView", owner: nil, options: nil)?[0] as? APProgressView ?? APProgressView()
-        loadingView.frame = CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
-        (UIApplication.shared.delegate as? AppDelegate)?.window?.addSubview(loadingView)
-        loadingView.startLoadingWith(title)
+        DispatchQueue.main.async {
+            self.loadingView = Bundle.main.loadNibNamed("APProgressView", owner: nil, options: nil)?[0] as? APProgressView ?? APProgressView()
+            self.loadingView.frame = CGRect.init(x: 0, y: 0, width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+            (UIApplication.shared.delegate as? AppDelegate)?.window?.addSubview(self.loadingView)
+            self.loadingView.startLoadingWith(title)
+        }
     }
     
     public func dismissProgressHUD() {
-        loadingView.removeFromSuperview()
+        DispatchQueue.main.async {
+            self.loadingView.removeFromSuperview()
+        }
     }
 }
 

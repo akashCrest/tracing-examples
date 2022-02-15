@@ -8,7 +8,6 @@
 import UIKit
 import Foundation
 import ObjectMapper
-import Alamofire
 import SplunkOtel
 import OpenTelemetrySdk
 import OpenTelemetryApi
@@ -22,26 +21,55 @@ class DataService{
     
     // MARK: - Generic Request
     public static func request<T: Mappable>(_ urlString: String,
-                                            method: HTTPMethod,
-                                            params: Parameters?,
+                                            method: String,
+                                            params: [String : Any]?,
+                                            shouldDisplayLoader : Bool = true,
                                             type: T.Type,
                                             completion: @escaping (T?, String?,Int) -> Void){
         
-        
-        APProgressHUD.shared.showProgressHUD(nil)
-        _ = AF.request(urlString, method: method, parameters: params, encoding: JSONEncoding.default, headers: nil, interceptor: nil, requestModifier: nil).response { (response : AFDataResponse<Data?>) in
+        handleNoInternetConnection {
+            guard let url = URL.init(string: urlString) else {return}
+            var request = URLRequest.init(url: url)
+            request.timeoutInterval = 60.0
+            //        request.setValue("keep-alive", forHTTPHeaderField: "Connection")
+            request.httpMethod = method
             
-            APProgressHUD.shared.dismissProgressHUD()
-            if response.response?.statusCode ?? 0 != 200 {
-                let errorMessage = String.init(format: StringConstants.unableToResolveHost, urlString)
-                completion(nil, errorMessage , 0)
-            } else {
-                completion(nil, nil , 200)
+            if let bodyParameters = params {    
+                let postString = getPostString(params: bodyParameters)
+                request.httpBody = postString.data(using: .utf8)
             }
+            
+            let session = URLSession.init(configuration: .default)
+            
+            if shouldDisplayLoader {
+                APProgressHUD.shared.showProgressHUD(nil)
             }
+            session.dataTask(with: request, completionHandler: { dataOfResponse, responseofAPI, errorOfAPI in
+                
+                if shouldDisplayLoader {                
+                    APProgressHUD.shared.dismissProgressHUD()
+                }
+                if let error = errorOfAPI {
+                    completion(nil, error.localizedDescription , 0)
+                } else if (responseofAPI as? HTTPURLResponse)?.statusCode != 200 {
+                    completion(nil, "Failed to get 200 Response code from API", (responseofAPI as? HTTPURLResponse)?.statusCode ?? 0)
+                } else {
+                    completion(nil, nil , 200)
+                }
+            }).resume()
+        }
     }
     
     
+    fileprivate static func getPostString(params:[String:Any]) -> String
+    {
+        var data = [String]()
+        for(key, value) in params
+        {
+            data.append(key + "=\(value)")
+        }
+        return data.map { String($0) }.joined(separator: "&")
+    }
 }
 
 enum ApiName: String{
@@ -51,6 +79,7 @@ enum ApiName: String{
     case Payment = "Payment"
     case ProductDetails = "product/"
     case Cart = "cart"
+    case GenerateSalesTax = "generateNewSalesTax"
 }
 func getURL(for apiname: String)-> String{
     //return "\(config.rootAPIUrl)/\(apiname)"

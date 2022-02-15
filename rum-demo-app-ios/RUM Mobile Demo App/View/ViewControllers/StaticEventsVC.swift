@@ -68,7 +68,7 @@ class StaticEventsVC : UIViewController{
             if let error = self.viewModel.error {
                 let actionOK = PCLBlurEffectAlertAction(title: "OK".localized(), style: .default) {_ in }
                 
-                self.showAlertMessage(title:StringConstants.alertTitle , message: error.localizedDescription, handlers: [actionOK])
+                self.showAlertNativeSingleAction(StringConstants.alertTitle , message: error.localizedDescription)
                 print(error.localizedDescription)
             }
         }
@@ -128,7 +128,7 @@ class StaticEventsVC : UIViewController{
             if let error = self.viewModel.error {
                 let actionOK = PCLBlurEffectAlertAction(title: "OK".localized(), style: .default) {_ in }
                 
-                self.showAlertMessage(title: StringConstants.alertTitle, message: error.localizedDescription, handlers: [actionOK])
+                self.showAlertNativeSingleAction(StringConstants.alertTitle, message: error.localizedDescription)
                 print(error.localizedDescription)
             }
         }

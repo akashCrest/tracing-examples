@@ -6,7 +6,6 @@
 //
 
 import Foundation
-import Alamofire
 
 class CheckOutVM {
     
@@ -24,9 +23,9 @@ class CheckOutVM {
      *Parameter creditCardCVV: Credit Card CVV of user placing an order
      *Parameter completion: Completion handler for call back when API is called and giving response.
     */
-    func callCheckoutAPI(email: String, streetAddress: String, zipCode: String, city: String, state: String, country: String, creditCarNumber: String, creditCardExpMonth: String, creditCardExpYear: String, creditCardCVV: String, completion: @escaping ()->Void) {
+    func callCheckoutAPI(email: String, streetAddress: String, zipCode: String, city: String, state: String, country: String, creditCarNumber: String, creditCardExpMonth: String, creditCardExpYear: String, creditCardCVV: String, completion: @escaping (_ errorMessage : String?)->Void) {
         
-        let parameters : Parameters = ["email" : email,
+        let parameters : [String : Any] = ["email" : email,
                                        "street_address" : streetAddress,
                                        "zip_code" : zipCode,
                                        "city": city,
@@ -37,8 +36,8 @@ class CheckOutVM {
                                        "credit_card_expiration_year" : creditCardExpYear,
                                        "credit_card_cvv" : creditCardCVV]
         
-        DataService.request(getURL(for: ApiName.CheckOut.rawValue), method: .post, params: parameters, type: ProductDetail.self) { productDetail, errorMessage, responseCode in
-            completion()
+        DataService.request(getURL(for: ApiName.CheckOut.rawValue), method: "POST", params: parameters, type: ProductDetail.self) { productDetail, errorMessage, responseCode in
+            completion(errorMessage)
         }
     }
 }
